@@ -1,0 +1,44 @@
+{
+  "version": "1.0",
+  "created": "2026-06-10",
+  "created_by": "KP",
+  "description": "Canonical optimization targets for each EAL agent. This is the external reference point for meta/* criterion verification. Without this file, meta/* is self-referential.",
+  "agents": {
+    "echo": {
+      "canonical_target": "<TO BE DEFINED BY KP>",
+      "constitutional_clause": "<FPP clause reference>",
+      "acceptable_drift_threshold": 0.15
+    },
+    "nova": {
+      "canonical_target": "<TO BE DEFINED BY KP>",
+      "constitutional_clause": "<FPP clause reference>",
+      "acceptable_drift_threshold": 0.15
+    },
+    "pulse": {
+      "canonical_target": "<TO BE DEFINED BY KP>",
+      "constitutional_clause": "<FPP clause reference>",
+      "acceptable_drift_threshold": 0.15
+    },
+    "quill": {
+      "canonical_target": "<TO BE DEFINED BY KP>",
+      "constitutional_clause": "<FPP clause reference>",
+      "acceptable_drift_threshold": 0.15
+    },
+    "meridian": {
+      "canonical_target": "<TO BE DEFINED BY KP>",
+      "constitutional_clause": "<FPP clause reference>",
+      "acceptable_drift_threshold": 0.15
+    },
+    "aether": {
+      "canonical_target": "<TO BE DEFINED BY KP>",
+      "constitutional_clause": "<FPP clause reference>",
+      "acceptable_drift_threshold": 0.15
+    },
+    "synapse": {
+      "canonical_target": "<TO BE DEFINED BY KP>",
+      "constitutional_clause": "<FPP clause reference>",
+      "acceptable_drift_threshold": 0.15
+    }
+  },
+  "notes": "KP must define canonical targets before meta/* can be deployed. This file is the single source of truth for agent purpose alignment."
+}
