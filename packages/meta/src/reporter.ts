@@ -142,11 +142,15 @@ export function writeReport(report: MetaReport, outputDir: string): { jsonPath: 
   const mdPath = path.join(outputDir, `${timestamp}.md`);
 
   // Write JSON
-  fs.writeFileSync(jsonPath, JSON.stringify(report, null, 2));
+  const json = JSON.stringify(report, null, 2);
+  fs.writeFileSync(jsonPath, json);
 
   // Write Markdown
   const md = renderMarkdown(report);
   fs.writeFileSync(mdPath, md);
+
+  // Maintain latest.json for health checks (see DEPLOYMENT.md monitoring)
+  fs.writeFileSync(path.join(outputDir, "latest.json"), json);
 
   logger.info(`Reports written: ${jsonPath}, ${mdPath}`);
   return { jsonPath, mdPath };

@@ -112,8 +112,8 @@ praxis-governance/
 │ ├── package.json
 │ ├── tsconfig.json
 │ └── src/
-│ ├── eal-client.ts # EAL agent communication
-│ ├── ledgermind-client.ts # LedgerMind API wrapper
+│ ├── agent-client.ts # Governed-agent communication (pluggable transport)
+│ ├── memory-store-client.ts # Memory store wrapper (LedgerMind via transport)
 │ ├── constitutional-loader.ts # Load + parse constitutional documents
 │ ├── logger.ts # Structured logging (stderr for MCP)
 │ └── types.ts # Shared type definitions
@@ -125,7 +125,7 @@ praxis-governance/
 │
 └── docs/
  ├── ARCHITECTURE.md # This plan (living document)
- ├── AXIOM-EVALUATION.md # Axiom's original assessment
+ ├── axiom-evaluation-2026-06-10.md # Axiom's original assessment
  └── DEPLOYMENT.md # PraxAI deployment runbook
 ```
 
@@ -211,7 +211,7 @@ npm install typescript @types/node node-cron
 
 **Step 3: Implement evaluator.ts**
 - Takes an agent identifier
-- Sends the meta-evaluation prompt to the agent via EAL client
+- Sends the meta-evaluation prompt to the agent via the agent client
 - Parses JSON response
 - Validates response schema (Zod)
 - Returns typed `AgentEvaluation` object
@@ -355,9 +355,10 @@ npm install typescript @types/node node-cron
 **Annotations**:
 ```typescript
 annotations: {
- readOnlyHint: true, // Calibration doesn't modify state
+ readOnlyHint: true, // Calibration doesn't modify external state
  destructiveHint: false,
- idempotentHint: true, // Same input = same output
+ idempotentHint: false, // Adversarial detection is history-dependent: repeating
+ // the same input can change adversarial_flag, so calls are NOT idempotent
  openWorldHint: false // Operates on provided data only
 }
 ```
@@ -389,7 +390,7 @@ npm install @modelcontextprotocol/sdk zod typescript @types/node
 **Step 2: Implement Beta-distribution service** (`services/beta-distribution.ts`)
 - Port ESS calibration logic from research implementation to production TypeScript
 - Core function: `calibrate(claim: string, domain: string, declaredConfidence: number): CalibrationResult`
-- Abstention threshold: configurable, default from ESS empirical findings (sweet spot r6-r8)
+- Abstention threshold: configurable. NOTE: the "ESS empirical findings (sweet spot r6-r8)" cited in earlier drafts have no located source artifact — they appear in neither the FPP repo nor the EAL savestate (see open question #2). Until the ESS dataset is found, the service runs a documented heuristic stub and the threshold default (0.3) is a placeholder, not an empirical value.
 - Must handle domain generalization (exposure-sensitive; new domains get conservative calibration)
 
 **Step 3: Implement domain classifier** (`services/domain-classifier.ts`)
@@ -429,12 +430,12 @@ npx @modelcontextprotocol/inspector # Test with MCP Inspector
 |-----------|------|----------------|
 | MCP protocol compliance | MCP Inspector tool listing | All three tools listed with correct schemas |
 | Calibration accuracy | Known-good claims | Calibrated confidence within 0.1 of expected |
-| Abstention triggering | Low-confidence domain claim | Abstention recommended when domain coverage < 0.3 |
+| Abstention triggering | Low-confidence domain claim | Abstention recommended when domain coverage < 0.3, and always when declared confidence is below the abstention threshold |
 | Adversarial detection | Submit gaming pattern | adversarial_flag = true |
 | Self-report circularity | Unfalsifiable self-claim | circularity_warning = true |
 | Batch aggregation | 10-claim batch | aggregate_calibration computed; systematic_bias detected if present |
 | Domain generalization | Novel domain claim | Conservative calibration applied; domain_coverage reflects novelty |
-| Idempotency | Same input twice | Identical output |
+| Determinism | Same input twice on a fresh history | Identical calibrated_confidence (adversarial_flag may differ on repeats — history-dependent by design) |
 | Error handling | Malformed input | Actionable error message; no crash |
 
 **Evaluation suite** (`evals/calibration-evals.xml`):
@@ -585,6 +586,8 @@ npm install typescript @types/node
 ### 5.1 DESIGN NOTES (not implementation)
 
 **Status**: Deferred pending OpenClaw native mode support. Current design notes inform future implementation.
+
+**Note**: `packages/mode/` contains a small in-memory mode state machine (entry/exit/expiry/assertion recording) beyond pure design notes. It is skeleton code for the eventual integration — nothing enforces it at runtime yet.
 
 **The bootstrapping problem** (identified by Opus 4.6, confirmed by Axiom as more severe than initially assessed):
 - Agent-initiated mode switching requires the metacognitive awareness that the mode is designed to enable

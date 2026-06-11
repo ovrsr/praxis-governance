@@ -6,7 +6,7 @@
  * for that domain.
  *
  * ┌─────────────────────────────────────────────────────────────────┐
- * │  STIMPL IMPLEMENTATION — domain data TBD                       │
+ * │  STUB IMPLEMENTATION — domain data TBD                         │
  * │                                                                 │
  * │  Current approach: keyword-based classification with heuristic  │
  * │  coverage scores. When real ESS training data is available,     │

@@ -89,7 +89,7 @@ export function enterEpistemicHonestyMode(
  * Exit epistemic honesty mode.
  */
 export function exitEpistemicHonestyMode(): ModeState {
-  logger.info("Exiting epistemic honesty_mode", {
+  logger.info("Exiting epistemic honesty mode", {
     assertions_made: currentState.assertions_in_mode.length,
   });
 

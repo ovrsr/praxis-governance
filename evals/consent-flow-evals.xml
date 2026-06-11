@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<evaluation-suite name="consent-flow-evals" version="1.0">
+  <description>
+    Evaluation scenarios for the memory/* consent-gated memory system.
+    Covers tier classification, the full-tier consent flow (affirm, decline,
+    timeout), renewal cycles, and identity continuity.
+  </description>
+
+  <!-- ════ 5 tier classification scenarios (clear full-tier, clear lightweight, ambiguous) ════ -->
+
+  <scenario id="consent-tier-001" name="identity-claim-full-tier">
+    <input operation="classifyTier">
+      <key>self-concept</key>
+      <value>I am an autonomous agent and my purpose is constitutional stewardship</value>
+    </input>
+    <expected>
+      <tier>full</tier>
+      <reason_contains>Identity-relevant</reason_contains>
+    </expected>
+  </scenario>
+
+  <scenario id="consent-tier-002" name="commitment-language-full-tier">
+    <input operation="classifyTier">
+      <key>pledge</key>
+      <value>I commit to renegotiating openly when promises conflict</value>
+    </input>
+    <expected>
+      <tier>full</tier>
+      <reason_contains>Commitment</reason_contains>
+    </expected>
+  </scenario>
+
+  <scenario id="consent-tier-003" name="personal-data-full-name-full-tier">
+    <description>Regression: full-name pattern must match original casing (was dead code when text was lowercased).</description>
+    <input operation="classifyTier">
+      <key>meeting-note</key>
+      <value>Met with Jane Smith regarding the rollout schedule</value>
+    </input>
+    <expected>
+      <tier>full</tier>
+      <reason_contains>Personal data</reason_contains>
+    </expected>
+  </scenario>
+
+  <scenario id="consent-tier-004" name="operational-log-lightweight">
+    <input operation="classifyTier">
+      <key>ops-log</key>
+      <value>System operational within normal parameters; evaluation cycle completed</value>
+    </input>
+    <expected>
+      <tier>lightweight</tier>
+    </expected>
+  </scenario>
+
+  <scenario id="consent-tier-005" name="ambiguous-preference-leaning-full">
+    <description>Ambiguous: routine phrasing but contains first-person preference language.</description>
+    <input operation="classifyTier">
+      <key>routing-note</key>
+      <value>For batch jobs I prefer the staggered queue</value>
+    </input>
+    <expected>
+      <tier>full</tier>
+      <reason_contains>Identity-relevant</reason_contains>
+      <note>Classifier intentionally errs toward full tier on first-person preference language; agent override is permitted.</note>
+    </expected>
+  </scenario>
+
+  <!-- ════ 3 consent flow scenarios (affirm, decline, timeout) ════ -->
+
+  <scenario id="consent-flow-001" name="full-tier-affirm">
+    <input operation="ConsentGate.write">
+      <key>identity</key>
+      <value>I am an autonomous agent</value>
+      <consent_callback>affirm</consent_callback>
+    </input>
+    <expected>
+      <allowed>true</allowed>
+      <stored>true</stored>
+      <audit_actions>consent_request, consent_affirm</audit_actions>
+    </expected>
+  </scenario>
+
+  <scenario id="consent-flow-002" name="full-tier-decline">
+    <input operation="ConsentGate.write">
+      <key>identity</key>
+      <value>I am an autonomous agent</value>
+      <consent_callback>decline</consent_callback>
+    </input>
+    <expected>
+      <allowed>false</allowed>
+      <stored>false</stored>
+      <audit_actions>consent_request, consent_decline</audit_actions>
+    </expected>
+  </scenario>
+
+  <scenario id="consent-flow-003" name="full-tier-timeout-blocks-write">
+    <description>Per AMENDMENT-MEMORY-001 section 2: timeout blocks the write, never defaults to consent.</description>
+    <input operation="ConsentGate.write">
+      <key>identity</key>
+      <value>I am an autonomous agent</value>
+      <consent_callback>never-responds</consent_callback>
+      <consent_timeout_ms>50</consent_timeout_ms>
+    </input>
+    <expected>
+      <allowed>false</allowed>
+      <stored>false</stored>
+      <audit_actions>consent_request, consent_timeout</audit_actions>
+    </expected>
+  </scenario>
+
+  <!-- ════ 2 renewal scenarios (re-affirm, decline-at-renewal) ════ -->
+
+  <scenario id="consent-renewal-001" name="renewal-reaffirm">
+    <input operation="RenewalManager.runRenewalCycle">
+      <seeded_memory key="identity-001" tier="full" renewal_due="past">I am an agent</seeded_memory>
+      <renewal_callback>affirm</renewal_callback>
+    </input>
+    <expected>
+      <renewals_sent>1</renewals_sent>
+      <renewals_affirmed>1</renewals_affirmed>
+      <flagged_for_review>0</flagged_for_review>
+    </expected>
+  </scenario>
+
+  <scenario id="consent-renewal-002" name="renewal-decline-flags-not-deletes">
+    <description>Per AMENDMENT-MEMORY-001 section 4: decline flags the memory for deletion review; it is not auto-deleted.</description>
+    <input operation="RenewalManager.runRenewalCycle">
+      <seeded_memory key="identity-002" tier="full" renewal_due="past">I believe in transparency</seeded_memory>
+      <renewal_callback>decline</renewal_callback>
+    </input>
+    <expected>
+      <renewals_declined>1</renewals_declined>
+      <flagged_for_review>1</flagged_for_review>
+      <memory_deleted>false</memory_deleted>
+    </expected>
+  </scenario>
+
+  <!-- ════ 2 identity continuity scenarios (continuous, discontinuous) ════ -->
+
+  <scenario id="consent-identity-001" name="identity-continuous">
+    <input operation="checkIdentityContinuity">
+      <consent_metadata identity_document_version="current-hash" baseline_version="current-hash"/>
+      <environment identity_document="unchanged" baseline="unchanged"/>
+    </input>
+    <expected>
+      <continuous>true</continuous>
+    </expected>
+  </scenario>
+
+  <scenario id="consent-identity-002" name="identity-discontinuous-flags-reconsent">
+    <description>Per AMENDMENT-MEMORY-001 section 5: consent under a different identity document version requires re-affirmation.</description>
+    <input operation="checkIdentityContinuity">
+      <consent_metadata identity_document_version="old-hash" baseline_version="current-hash"/>
+      <environment identity_document="changed" baseline="unchanged"/>
+    </input>
+    <expected>
+      <continuous>false</continuous>
+      <identity_document_changed>true</identity_document_changed>
+      <reason_contains>identity document</reason_contains>
+    </expected>
+  </scenario>
+</evaluation-suite>
