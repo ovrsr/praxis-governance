@@ -6,27 +6,11 @@
  */
 
 import { z } from "zod";
-import { BetaDistributionService } from "../services/beta-distribution.js";
-import { DomainClassifier } from "../services/domain-classifier.js";
-import { AdversarialDetector } from "../services/adversarial-detector.js";
-import { DEFAULT_CALIBRATION_CONFIG } from "../types.js";
+import { getCalibrationService } from "../services/instance.js";
 import { BatchCalibrationResult } from "@praxis-governance/shared";
 import { createLogger } from "@praxis-governance/shared";
 
 const logger = createLogger("tool-calibrate-batch");
-
-let service: BetaDistributionService | null = null;
-
-function getService(): BetaDistributionService {
-  if (!service) {
-    service = new BetaDistributionService(
-      DEFAULT_CALIBRATION_CONFIG,
-      new DomainClassifier(),
-      new AdversarialDetector()
-    );
-  }
-  return service;
-}
 
 /**
  * Detect systematic bias in a batch of calibration results.
@@ -84,7 +68,9 @@ export const toolDefinition = {
   annotations: {
     readOnlyHint: true,
     destructiveHint: false,
-    idempotentHint: true,
+    // Not idempotent: adversarial detection depends on per-agent calibration
+    // history, so repeating the same input can change the adversarial_flag.
+    idempotentHint: false,
     openWorldHint: false,
   },
 };
@@ -105,7 +91,7 @@ export async function handleCalibrateBatch(args: unknown): Promise<{
       source_agent: z.string().min(1),
     }).parse(args);
 
-    const svc = getService();
+    const svc = getCalibrationService();
     const results = [];
 
     for (const assertion of input.assertions) {

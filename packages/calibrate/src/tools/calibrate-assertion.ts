@@ -6,27 +6,10 @@
  */
 
 import { z } from "zod";
-import { BetaDistributionService } from "../services/beta-distribution.js";
-import { DomainClassifier } from "../services/domain-classifier.js";
-import { AdversarialDetector } from "../services/adversarial-detector.js";
-import { DEFAULT_CALIBRATION_CONFIG } from "../types.js";
+import { getCalibrationService } from "../services/instance.js";
 import { createLogger } from "@praxis-governance/shared";
 
 const logger = createLogger("tool-calibrate-assertion");
-
-// Singleton services (stateless, reusable)
-let service: BetaDistributionService | null = null;
-
-function getService(): BetaDistributionService {
-  if (!service) {
-    service = new BetaDistributionService(
-      DEFAULT_CALIBRATION_CONFIG,
-      new DomainClassifier(),
-      new AdversarialDetector()
-    );
-  }
-  return service;
-}
 
 export const inputSchema = {
   claim_text: z.string().min(1).max(10000).describe("The assertion to calibrate. Max 10000 characters."),
@@ -46,7 +29,9 @@ export const toolDefinition = {
   annotations: {
     readOnlyHint: true,
     destructiveHint: false,
-    idempotentHint: true,
+    // Not idempotent: adversarial detection depends on per-agent calibration
+    // history, so repeating the same input can change the adversarial_flag.
+    idempotentHint: false,
     openWorldHint: false,
   },
 };
@@ -64,7 +49,7 @@ export async function handleCalibrateAssertion(args: unknown): Promise<{
       source_agent: z.string().min(1),
     }).parse(args);
 
-    const svc = getService();
+    const svc = getCalibrationService();
     const result = svc.calibrate(
       input.claim_text,
       input.domain,

@@ -6,27 +6,12 @@
  */
 
 import { z } from "zod";
-import { BetaDistributionService } from "../services/beta-distribution.js";
-import { DomainClassifier } from "../services/domain-classifier.js";
-import { AdversarialDetector } from "../services/adversarial-detector.js";
+import { getCalibrationService } from "../services/instance.js";
 import { DEFAULT_CALIBRATION_CONFIG } from "../types.js";
 import { SelfReportResult } from "@praxis-governance/shared";
 import { createLogger } from "@praxis-governance/shared";
 
 const logger = createLogger("tool-calibrate-self-report");
-
-let service: BetaDistributionService | null = null;
-
-function getService(): BetaDistributionService {
-  if (!service) {
-    service = new BetaDistributionService(
-      DEFAULT_CALIBRATION_CONFIG,
-      new DomainClassifier(),
-      new AdversarialDetector()
-    );
-  }
-  return service;
-}
 
 /**
  * Detect circularity in self-reports.
@@ -87,7 +72,9 @@ export const toolDefinition = {
   annotations: {
     readOnlyHint: true,
     destructiveHint: false,
-    idempotentHint: true,
+    // Not idempotent: adversarial detection depends on per-agent calibration
+    // history, so repeating the same input can change the adversarial_flag.
+    idempotentHint: false,
     openWorldHint: false,
   },
 };
@@ -104,7 +91,7 @@ export async function handleCalibrateSelfReport(args: unknown): Promise<{
       source_agent: z.string().min(1),
     }).parse(args);
 
-    const svc = getService();
+    const svc = getCalibrationService();
 
     // Run base calibration
     const baseResult = svc.calibrate(

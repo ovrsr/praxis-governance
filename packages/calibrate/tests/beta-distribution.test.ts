@@ -51,6 +51,22 @@ describe("BetaDistributionService", () => {
     expect(result.domain_coverage).toBeLessThanOrEqual(0.3);
   });
 
+  test("declared confidence below threshold always recommends abstention", () => {
+    // Regression: shrinkage toward 0.5 must not launder a declared-low-confidence
+    // claim past the abstention gate. Declared 0.05 in a novel domain previously
+    // calibrated up to ~0.43 (> 0.3 threshold) with no abstention recommended.
+    const result = service.calibrate(
+      "Something about a completely unknown topic xyz123",
+      "novel",
+      0.05,
+      "",
+      "test-agent"
+    );
+
+    expect(result.abstention_recommended).toBe(true);
+    expect(result.reasoning).toContain("Abstention recommended");
+  });
+
   test("adjusts overconfident claims downward", () => {
     const result = service.calibrate(
       "I am absolutely certain about this very specific claim",

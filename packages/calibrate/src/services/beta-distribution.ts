@@ -112,8 +112,12 @@ export class BetaDistributionService {
       Math.min(1.0, declaredConfidence + adjustment)
     );
 
-    // Step 4: Determine if abstention is recommended
-    const abstentionRecommended = calibratedConfidence < this.config.abstentionThreshold;
+    // Step 4: Determine if abstention is recommended.
+    // Uses min(declared, calibrated): shrinkage toward 0.5 must not launder a
+    // claim the agent itself rated below the threshold past the abstention
+    // check (e.g. declared 0.05 in a novel domain calibrating up to ~0.43).
+    const abstentionRecommended =
+      Math.min(declaredConfidence, calibratedConfidence) < this.config.abstentionThreshold;
 
     // Step 5: Run adversarial detection
     const adversarialResult = this.config.adversarialDetectionEnabled
@@ -259,8 +263,12 @@ export class BetaDistributionService {
     }
 
     if (abstention) {
+      const lowSource =
+        declared < this.config.abstentionThreshold
+          ? `declared confidence (${(declared * 100).toFixed(1)}%)`
+          : `calibrated confidence (${(calibrated * 100).toFixed(1)}%)`;
       parts.push(
-        `Abstention recommended: calibrated confidence (${(calibrated * 100).toFixed(1)}%) below threshold (${(this.config.abstentionThreshold * 100).toFixed(1)}%).`
+        `Abstention recommended: ${lowSource} below threshold (${(this.config.abstentionThreshold * 100).toFixed(1)}%).`
       );
     }
 
