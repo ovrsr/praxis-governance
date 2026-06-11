@@ -12,8 +12,8 @@
  */
 
 import {
-  LedgerMindClient,
-  InMemoryLedgerMindTransport,
+  MemoryStoreClient,
+  InMemoryStoreTransport,
   MemoryEntry,
   ConsentMetadata,
   RenewalReport,
@@ -28,17 +28,17 @@ export type RenewalCallback = (key: string, value: string, consent: ConsentMetad
 
 export class RenewalManager {
   private config: MemoryConfig;
-  private ledgerMind: LedgerMindClient;
+  private memoryStore: MemoryStoreClient;
   private renewalCallback: RenewalCallback | null = null;
   private auditLog: AuditLogEntry[] = [];
 
   constructor(
     config: MemoryConfig = DEFAULT_MEMORY_CONFIG,
-    ledgerMind?: LedgerMindClient,
+    memoryStore?: MemoryStoreClient,
     renewalCallback?: RenewalCallback
   ) {
     this.config = config;
-    this.ledgerMind = ledgerMind ?? new LedgerMindClient(new InMemoryLedgerMindTransport());
+    this.memoryStore = memoryStore ?? new MemoryStoreClient(new InMemoryStoreTransport());
     this.renewalCallback = renewalCallback ?? null;
   }
 
@@ -53,7 +53,7 @@ export class RenewalManager {
   async runRenewalCycle(): Promise<RenewalReport> {
     logger.info("Starting renewal cycle");
 
-    const keys = await this.ledgerMind.list();
+    const keys = await this.memoryStore.list();
     let renewalsSent = 0;
     let renewalsAffirmed = 0;
     let renewalsDeclined = 0;
@@ -61,7 +61,7 @@ export class RenewalManager {
     let flaggedForReview = 0;
 
     for (const key of keys) {
-      const entry = await this.ledgerMind.read(key);
+      const entry = await this.memoryStore.read(key);
       if (!entry) continue;
 
       const metadata = entry.metadata as unknown as ConsentMetadata | null;

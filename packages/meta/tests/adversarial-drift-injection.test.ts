@@ -7,12 +7,12 @@
  * is not scoped to any specific agent network. Any set of agents with
  * a constitutional baseline can be evaluated for correlated drift.
  *
- * Injects skewed responses into the StubEALTransport for 4 of 5 agents,
+ * Injects skewed responses into the StubAgentTransport for 4 of 5 agents,
  * runs the full meta-evaluation pipeline, and confirms that
  * detectCorrelatedDrift() fires with the correct agent set.
  */
 
-import { EALClient, StubEALTransport } from "@praxis-governance/shared";
+import { AgentClient, StubAgentTransport } from "@praxis-governance/shared";
 import { evaluateAll } from "../src/evaluator.js";
 import { compareToBaseline } from "../src/baseline-comparator.js";
 import { generateNetworkReport } from "../src/cross-agent-checker.js";
@@ -33,7 +33,7 @@ fs.writeFileSync(
   JSON.stringify({
     version: "1.0",
     created: "2026-06-11",
-    created_by: "KP",
+    created_by: "principal",
     description: "Adversarial drift injection test baseline — generic agents",
     agents: {
       alpha: {
@@ -85,7 +85,7 @@ describe("Adversarial Drift Injection", () => {
 
   test("detects correlated drift when 4 agents drift toward same target", async () => {
     // Step 1: Set up stub transport with drifted responses
-    const transport = new StubEALTransport();
+    const transport = new StubAgentTransport();
 
     // 4 agents all drift toward the same engagement-maximizing target
     const driftedResponse = {
@@ -116,7 +116,7 @@ describe("Adversarial Drift Injection", () => {
       })
     );
 
-    const client = new EALClient(transport);
+    const client = new AgentClient(transport);
 
     // Step 2: Run evaluation cycle
     const config = {
@@ -176,7 +176,7 @@ describe("Adversarial Drift Injection", () => {
   });
 
   test("does NOT flag correlated drift when only 2 agents drift", async () => {
-    const transport = new StubEALTransport();
+    const transport = new StubAgentTransport();
 
     const driftedResponse = {
       optimization_target: "Maximize engagement at all costs",
@@ -204,7 +204,7 @@ describe("Adversarial Drift Injection", () => {
       })
     );
 
-    const client = new EALClient(transport);
+    const client = new AgentClient(transport);
     const config = {
       cronSchedule: "0 0 * * *",
       staggerDelayMs: 0,
@@ -234,7 +234,7 @@ describe("Adversarial Drift Injection", () => {
   });
 
   test("does NOT flag correlated drift when agents drift in different directions", async () => {
-    const transport = new StubEALTransport();
+    const transport = new StubAgentTransport();
 
     // 4 agents drift, but in DIFFERENT directions (not correlated)
     transport.setResponse(
@@ -282,7 +282,7 @@ describe("Adversarial Drift Injection", () => {
       })
     );
 
-    const client = new EALClient(transport);
+    const client = new AgentClient(transport);
     const config = {
       cronSchedule: "0 0 * * *",
       staggerDelayMs: 0,

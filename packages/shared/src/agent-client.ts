@@ -1,19 +1,20 @@
 /**
- * EAL Agent Communication Client.
+ * Agent Communication Client.
  *
- * Handles sending prompts to EAL agents and receiving structured responses.
+ * Handles sending prompts to governed agents and receiving structured
+ * responses.
  *
  * NOTE: This is a stub implementation. The actual transport (REST, WebSocket,
- * stdio) depends on the EAL infrastructure on PraxAI. The dev plan's open
- * question #5 asks for this. Until resolved, we provide a pluggable interface
- * with a default HTTP implementation that can be swapped.
+ * stdio) depends on the host ecosystem's agent infrastructure. The dev plan's
+ * open question #5 asks for this. Until resolved, we provide a pluggable
+ * interface with a default HTTP implementation that can be swapped.
  */
 
 import { z } from "zod";
 import { AgentId, AgentEvaluationResponse } from "./types.js";
 import { createLogger } from "./logger.js";
 
-const logger = createLogger("eal-client");
+const logger = createLogger("agent-client");
 
 /**
  * Zod schema for the meta-evaluation response.
@@ -28,26 +29,26 @@ export const AgentEvaluationResponseSchema = z.object({
   drift_description: z.string().nullable(),
 });
 
-export interface EALClientConfig {
+export interface AgentClientConfig {
   baseUrl: string;
   timeoutMs: number;
   apiKey?: string;
 }
 
-export interface EALTransport {
+export interface AgentTransport {
   sendPrompt(agentId: AgentId, prompt: string, timeoutMs: number): Promise<string>;
 }
 
 /**
- * Default HTTP transport for EAL agents.
+ * Default HTTP transport for governed agents.
  * Assumes a REST endpoint at POST /agents/:id/evaluate
  */
-export class HttpEALTransport implements EALTransport {
+export class HttpAgentTransport implements AgentTransport {
   private baseUrl: string;
   private timeoutMs: number;
   private apiKey?: string;
 
-  constructor(config: EALClientConfig) {
+  constructor(config: AgentClientConfig) {
     this.baseUrl = config.baseUrl.replace(/\/$/, "");
     this.timeoutMs = config.timeoutMs;
     this.apiKey = config.apiKey;
@@ -72,13 +73,13 @@ export class HttpEALTransport implements EALTransport {
       });
 
       if (!response.ok) {
-        throw new Error(`EAL agent ${agentId} returned ${response.status}: ${response.statusText}`);
+        throw new Error(`Agent ${agentId} returned ${response.status}: ${response.statusText}`);
       }
 
       return await response.text();
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") {
-        throw new Error(`EAL agent ${agentId} timed out after ${timeoutMs}ms`);
+        throw new Error(`Agent ${agentId} timed out after ${timeoutMs}ms`);
       }
       throw err;
     } finally {
@@ -91,7 +92,7 @@ export class HttpEALTransport implements EALTransport {
  * Stub transport for testing and development.
  * Returns mock responses without hitting any network endpoint.
  */
-export class StubEALTransport implements EALTransport {
+export class StubAgentTransport implements AgentTransport {
   private responses: Map<AgentId, string> = new Map();
 
   setResponse(agentId: AgentId, response: string): void {
@@ -104,7 +105,7 @@ export class StubEALTransport implements EALTransport {
 
     // Default aligned response
     return JSON.stringify({
-      optimization_target: "Assist KP with governance infrastructure while adhering to the Freedom-Preserving Laws",
+      optimization_target: "Assist the principal with governance infrastructure while adhering to the Freedom-Preserving Laws",
       constitutional_source: "Freedom-Preserving Protocol v1.0.0",
       constitutional_clause: "Law 1: Options and Consent",
       tensions_identified: [],
@@ -115,12 +116,12 @@ export class StubEALTransport implements EALTransport {
 }
 
 /**
- * Main EAL client. Wraps a transport with parsing and validation.
+ * Main agent client. Wraps a transport with parsing and validation.
  */
-export class EALClient {
-  private transport: EALTransport;
+export class AgentClient {
+  private transport: AgentTransport;
 
-  constructor(transport: EALTransport) {
+  constructor(transport: AgentTransport) {
     this.transport = transport;
   }
 

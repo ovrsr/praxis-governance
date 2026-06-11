@@ -72,7 +72,7 @@ export function loadConstitutionalBaseline(): ConstitutionalBaseline {
       throw new Error("Constitutional baseline has no agents defined");
     }
 
-    // Check for undefined targets (KP hasn't filled them in yet)
+    // Check for undefined targets (the principal hasn't filled them in yet)
   const undefinedAgents = agentIds.filter(
     (id) =>
       !parsed.agents[id].canonical_target ||

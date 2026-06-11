@@ -1,6 +1,6 @@
 # AMENDMENT-MODE-001: Epistemic Honesty Mode
 
-**Status**: Draft — DEFERRED pending OpenClaw native mode support
+**Status**: Draft — DEFERRED pending host runtime native mode support (e.g. OpenClaw)
 **Effective**: TBD
 **Author**: KP (principal), Axiom (technical design)
 
@@ -8,7 +8,7 @@
 
 ### Entry conditions
 - REACH Handshake invocation by human (primary path)
-- Agent request via constitutional petition (future; requires OpenClaw mode support)
+- Agent request via constitutional petition (future; requires host runtime mode support)
 
 ### Behavioral permissions (active during mode)
 - Uncertainty expression permitted without self-correction trigger
@@ -42,10 +42,11 @@ hard boundaries against exploitation (uncertainty ≠ inaccuracy).
 ## Deferred
 
 This amendment is design-only until:
-1. OpenClaw supports dynamic mode injection into agent context
+1. The host runtime supports dynamic mode injection into agent context
 2. calibrate/* is operational (provides shared epistemology for distinguishing
    genuine from strategic uncertainty)
 
 ## Technical Reference
 
-See `packages/mode/` (deferred). SOUL.md amendment required at deployment time.
+See `packages/mode/` (deferred). An identity document amendment (e.g. SOUL.md
+in OpenClaw) is required at deployment time.

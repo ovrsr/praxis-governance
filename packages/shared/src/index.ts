@@ -13,15 +13,15 @@ export {
   listAgents,
 } from "./constitutional-loader.js";
 
-// EAL client
+// Agent client
 export {
-  EALClient,
-  HttpEALTransport,
-  StubEALTransport,
+  AgentClient,
+  HttpAgentTransport,
+  StubAgentTransport,
   AgentEvaluationResponseSchema,
-} from "./eal-client.js";
-export type { EALClientConfig, EALTransport } from "./eal-client.js";
+} from "./agent-client.js";
+export type { AgentClientConfig, AgentTransport } from "./agent-client.js";
 
-// LedgerMind client
-export { LedgerMindClient, InMemoryLedgerMindTransport } from "./ledgermind-client.js";
-export type { LedgerMindClientConfig, LedgerMindTransport } from "./ledgermind-client.js";
+// Memory store client
+export { MemoryStoreClient, InMemoryStoreTransport } from "./memory-store-client.js";
+export type { MemoryStoreClientConfig, MemoryStoreTransport } from "./memory-store-client.js";

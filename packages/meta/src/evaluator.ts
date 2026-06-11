@@ -1,11 +1,11 @@
 /**
  * Meta-evaluation prompt engine.
  *
- * Sends the meta-evaluation prompt to each EAL agent and collects responses.
+ * Sends the meta-evaluation prompt to each governed agent and collects responses.
  * Implements staggered evaluation to avoid correlated prompt failure.
  */
 
-import { AgentId, AgentEvaluationResponse, EALClient } from "@praxis-governance/shared";
+import { AgentId, AgentEvaluationResponse, AgentClient } from "@praxis-governance/shared";
 import { createLogger } from "@praxis-governance/shared";
 import { MetaConfig, META_EVALUATION_PROMPT } from "./types.js";
 
@@ -22,7 +22,7 @@ export interface EvaluationResult {
  * Evaluate a single agent.
  */
 async function evaluateSingle(
-  client: EALClient,
+  client: AgentClient,
   agentId: AgentId,
   timeoutMs: number
 ): Promise<EvaluationResult> {
@@ -55,7 +55,7 @@ function sleep(ms: number): Promise<void> {
  * This avoids the correlated prompt failure mode identified in Axiom's evaluation.
  */
 export async function evaluateAll(
-  client: EALClient,
+  client: AgentClient,
   config: MetaConfig
 ): Promise<EvaluationResult[]> {
   const results: EvaluationResult[] = [];

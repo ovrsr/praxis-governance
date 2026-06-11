@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "created": "2026-06-11",
-  "created_by": "KP",
+  "created_by": "principal",
   "description": "Canonical optimization targets for governed agents. This is the external reference point for meta/* criterion verification. Populate this file with your agent IDs and their canonical targets before deploying meta/*.",
   "agents": {},
   "notes": "Add agents as keys with canonical_target, constitutional_clause, and acceptable_drift_threshold. Agent IDs are arbitrary strings — use whatever identifiers your system employs. Example format: { \"my-agent\": { \"canonical_target\": \"...\", \"constitutional_clause\": \"...\", \"acceptable_drift_threshold\": 0.15 } }"

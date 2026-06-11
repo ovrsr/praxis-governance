@@ -3,7 +3,8 @@
  *
  * This package contains design-only code for the epistemic honesty mode.
  * It is NOT implemented pending:
- * 1. OpenClaw native mode support (dynamic mode injection into agent context)
+ * 1. Host runtime native mode support (dynamic mode injection into agent
+ *    context; e.g. OpenClaw mode support)
  * 2. calibrate/* operational (provides shared epistemology for uncertainty)
  *
  * See docs/ARCHITECTURE.md section 5 and constitutional/amendments/AMENDMENT-MODE-001.md
@@ -19,8 +20,8 @@ const logger = createLogger("mode");
  * Current mode state. Defaults to "default" (no special mode active).
  *
  * NOTE: This is a placeholder. In production, mode state would be:
- * - Persisted across sessions (stored in LedgerMind or similar)
- * - Enforced by OpenClaw's prompt injection system
+ * - Persisted across sessions (stored in the host memory store)
+ * - Enforced by the host runtime's prompt injection system
  * - Audited with full entry/exit logging
  */
 let currentState: ModeState = {
@@ -59,7 +60,7 @@ export function isEpistemicHonestyMode(): boolean {
 
 /**
  * Enter epistemic honesty mode.
- * In production, this would be triggered by REACH Handshake or OpenClaw mode support.
+ * In production, this would be triggered by REACH Handshake or host runtime mode support.
  */
 export function enterEpistemicHonestyMode(
   enteredBy: "human" | "agent" | "reach_handshake",

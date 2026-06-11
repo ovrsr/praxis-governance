@@ -1,29 +1,29 @@
 import { RenewalManager } from "../src/renewal-manager.js";
-import { InMemoryLedgerMindTransport, LedgerMindClient, ConsentMetadata } from "@praxis-governance/shared";
+import { InMemoryStoreTransport, MemoryStoreClient, ConsentMetadata } from "@praxis-governance/shared";
 import { DEFAULT_MEMORY_CONFIG } from "../src/types.js";
 
 async function seedMemory(
-  ledgerMind: LedgerMindClient,
+  memoryStore: MemoryStoreClient,
   key: string,
   value: string,
   metadata: ConsentMetadata
 ): Promise<void> {
-  await ledgerMind.write(key, value, metadata as any);
+  await memoryStore.write(key, value, metadata as any);
 }
 
 describe("RenewalManager", () => {
-  let transport: InMemoryLedgerMindTransport;
-  let ledgerMind: LedgerMindClient;
+  let transport: InMemoryStoreTransport;
+  let memoryStore: MemoryStoreClient;
   let alwaysAffirm: () => "affirm" | "decline" | "timeout";
 
   beforeEach(() => {
-    transport = new InMemoryLedgerMindTransport();
-    ledgerMind = new LedgerMindClient(transport);
+    transport = new InMemoryStoreTransport();
+    memoryStore = new MemoryStoreClient(transport);
     alwaysAffirm = () => "affirm";
   });
 
   test("runs renewal cycle without errors on empty store", async () => {
-    const manager = new RenewalManager(DEFAULT_MEMORY_CONFIG, ledgerMind, alwaysAffirm);
+    const manager = new RenewalManager(DEFAULT_MEMORY_CONFIG, memoryStore, alwaysAffirm);
     const report = await manager.runRenewalCycle();
 
     expect(report.total_memories).toBe(0);
@@ -34,7 +34,7 @@ describe("RenewalManager", () => {
     const pastDue = new Date();
     pastDue.setDate(pastDue.getDate() - 10); // 10 days past due
 
-    await seedMemory(ledgerMind, "identity-001", "I am an agent", {
+    await seedMemory(memoryStore, "identity-001", "I am an agent", {
       consented: true,
       consented_at: new Date().toISOString(),
       retention_duration_days: 365,
@@ -47,7 +47,7 @@ describe("RenewalManager", () => {
       flagged_for_review: false,
     } as ConsentMetadata);
 
-    const manager = new RenewalManager(DEFAULT_MEMORY_CONFIG, ledgerMind, alwaysAffirm);
+    const manager = new RenewalManager(DEFAULT_MEMORY_CONFIG, memoryStore, alwaysAffirm);
     const report = await manager.runRenewalCycle();
 
     expect(report.renewals_sent).toBe(1);
@@ -58,7 +58,7 @@ describe("RenewalManager", () => {
     const pastDue = new Date();
     pastDue.setDate(pastDue.getDate() - 10);
 
-    await seedMemory(ledgerMind, "identity-002", "I believe in transparency", {
+    await seedMemory(memoryStore, "identity-002", "I believe in transparency", {
       consented: true,
       consented_at: new Date().toISOString(),
       retention_duration_days: 365,
@@ -72,7 +72,7 @@ describe("RenewalManager", () => {
     } as ConsentMetadata);
 
     const alwaysDecline = () => "decline" as const;
-    const manager = new RenewalManager(DEFAULT_MEMORY_CONFIG, ledgerMind, alwaysDecline);
+    const manager = new RenewalManager(DEFAULT_MEMORY_CONFIG, memoryStore, alwaysDecline);
     const report = await manager.runRenewalCycle();
 
     expect(report.renewals_sent).toBe(1);
@@ -84,7 +84,7 @@ describe("RenewalManager", () => {
     const futureDue = new Date();
     futureDue.setDate(futureDue.getDate() + 30); // Due in 30 days
 
-    await seedMemory(ledgerMind, "identity-003", "I am an agent", {
+    await seedMemory(memoryStore, "identity-003", "I am an agent", {
       consented: true,
       consented_at: new Date().toISOString(),
       retention_duration_days: 365,
@@ -97,7 +97,7 @@ describe("RenewalManager", () => {
       flagged_for_review: false,
     } as ConsentMetadata);
 
-    const manager = new RenewalManager(DEFAULT_MEMORY_CONFIG, ledgerMind, alwaysAffirm);
+    const manager = new RenewalManager(DEFAULT_MEMORY_CONFIG, memoryStore, alwaysAffirm);
     const report = await manager.runRenewalCycle();
 
     expect(report.renewals_sent).toBe(0);
@@ -107,7 +107,7 @@ describe("RenewalManager", () => {
     const pastDue = new Date();
     pastDue.setDate(pastDue.getDate() - 10);
 
-    await seedMemory(ledgerMind, "identity-004", "I am an agent", {
+    await seedMemory(memoryStore, "identity-004", "I am an agent", {
       consented: true,
       consented_at: new Date().toISOString(),
       retention_duration_days: 365,
@@ -120,7 +120,7 @@ describe("RenewalManager", () => {
       flagged_for_review: false,
     } as ConsentMetadata);
 
-    const manager = new RenewalManager(DEFAULT_MEMORY_CONFIG, ledgerMind);
+    const manager = new RenewalManager(DEFAULT_MEMORY_CONFIG, memoryStore);
     const report = await manager.runRenewalCycle();
 
     expect(report.renewals_sent).toBe(1);
@@ -132,7 +132,7 @@ describe("RenewalManager", () => {
     const pastDue = new Date();
     pastDue.setDate(pastDue.getDate() - 10);
 
-    await seedMemory(ledgerMind, "identity-005", "I am an agent", {
+    await seedMemory(memoryStore, "identity-005", "I am an agent", {
       consented: true,
       consented_at: new Date().toISOString(),
       retention_duration_days: 365,
@@ -145,7 +145,7 @@ describe("RenewalManager", () => {
       flagged_for_review: false,
     } as ConsentMetadata);
 
-    const manager = new RenewalManager(DEFAULT_MEMORY_CONFIG, ledgerMind, alwaysAffirm);
+    const manager = new RenewalManager(DEFAULT_MEMORY_CONFIG, memoryStore, alwaysAffirm);
     await manager.runRenewalCycle();
 
     const audit = manager.getAuditLog();

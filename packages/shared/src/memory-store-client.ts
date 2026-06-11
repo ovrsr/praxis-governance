@@ -1,24 +1,26 @@
 /**
- * LedgerMind API Client.
+ * Memory Store Client.
  *
- * Wraps LedgerMind's memory CRUD operations for use by the memory/* package.
+ * Wraps a key-value memory store's CRUD operations for use by the memory/*
+ * package. The deployment target's store (e.g. LedgerMind on PraxAI) is
+ * integrated by implementing MemoryStoreTransport.
  *
- * NOTE: This is a stub implementation. The actual LedgerMind API surface is
- * unknown (dev plan open question #3). We define the interface we need
- * and provide a pluggable transport, same pattern as eal-client.
+ * NOTE: This is a stub implementation. The actual backing-store API surface
+ * is unknown (dev plan open question #3). We define the interface we need
+ * and provide a pluggable transport, same pattern as agent-client.
  */
 
 import { MemoryEntry, ConsentMetadata } from "./types.js";
 import { createLogger } from "./logger.js";
 
-const logger = createLogger("ledgermind-client");
+const logger = createLogger("memory-store-client");
 
-export interface LedgerMindClientConfig {
+export interface MemoryStoreClientConfig {
   baseUrl: string;
   apiKey?: string;
 }
 
-export interface LedgerMindTransport {
+export interface MemoryStoreTransport {
   write(key: string, value: string, metadata?: Record<string, unknown>): Promise<void>;
   read(key: string): Promise<{ value: string; metadata: Record<string, unknown> } | null>;
   delete(key: string): Promise<boolean>;
@@ -28,7 +30,7 @@ export interface LedgerMindTransport {
 /**
  * In-memory transport for testing and development.
  */
-export class InMemoryLedgerMindTransport implements LedgerMindTransport {
+export class InMemoryStoreTransport implements MemoryStoreTransport {
   private store: Map<string, { value: string; metadata: Record<string, unknown> }> = new Map();
 
   async write(key: string, value: string, metadata: Record<string, unknown> = {}): Promise<void> {
@@ -57,12 +59,12 @@ export class InMemoryLedgerMindTransport implements LedgerMindTransport {
 }
 
 /**
- * Main LedgerMind client.
+ * Main memory store client.
  */
-export class LedgerMindClient {
-  private transport: LedgerMindTransport;
+export class MemoryStoreClient {
+  private transport: MemoryStoreTransport;
 
-  constructor(transport: LedgerMindTransport) {
+  constructor(transport: MemoryStoreTransport) {
     this.transport = transport;
   }
 

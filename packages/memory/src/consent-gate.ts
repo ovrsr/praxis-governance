@@ -17,8 +17,8 @@ import {
   ConsentMetadata,
   ConsentRequest,
   ConsentResponse,
-  LedgerMindClient,
-  InMemoryLedgerMindTransport,
+  MemoryStoreClient,
+  InMemoryStoreTransport,
 } from "@praxis-governance/shared";
 import { createLogger } from "@praxis-governance/shared";
 import { classifyTier } from "./tier-classifier.js";
@@ -37,7 +37,7 @@ export type ConsentCallback = (request: ConsentRequest) => ConsentResponse | Pro
 
 export class ConsentGate {
   private config: MemoryConfig;
-  private ledgerMind: LedgerMindClient;
+  private memoryStore: MemoryStoreClient;
   private auditLog: AuditLogEntry[] = [];
   private consentCallback: ConsentCallback | null = null;
 
@@ -46,11 +46,11 @@ export class ConsentGate {
 
   constructor(
     config: MemoryConfig = DEFAULT_MEMORY_CONFIG,
-    ledgerMind?: LedgerMindClient,
+    memoryStore?: MemoryStoreClient,
     consentCallback?: ConsentCallback
   ) {
     this.config = config;
-    this.ledgerMind = ledgerMind ?? new LedgerMindClient(new InMemoryLedgerMindTransport());
+    this.memoryStore = memoryStore ?? new MemoryStoreClient(new InMemoryStoreTransport());
     this.consentCallback = consentCallback ?? null;
   }
 
@@ -106,7 +106,7 @@ export class ConsentGate {
       },
     };
 
-    await this.ledgerMind.write(key, value, entry.consent_metadata as any);
+    await this.memoryStore.write(key, value, entry.consent_metadata as any);
 
     // Register opt-out window
     const optOutExpiry = Date.now() + this.config.lightweightOptOutHours * 60 * 60 * 1000;
@@ -206,7 +206,7 @@ export class ConsentGate {
         },
       };
 
-      await this.ledgerMind.write(key, value, entry.consent_metadata as any);
+      await this.memoryStore.write(key, value, entry.consent_metadata as any);
 
       this.logAudit({
         timestamp: new Date().toISOString(),
@@ -269,7 +269,7 @@ export class ConsentGate {
    * Revoke a memory (works for both tiers, any time).
    */
   async revoke(key: string, reason?: string): Promise<boolean> {
-    const deleted = await this.ledgerMind.delete(key);
+    const deleted = await this.memoryStore.delete(key);
     this.optOutWindows.delete(key);
 
     this.logAudit({
@@ -303,10 +303,10 @@ export class ConsentGate {
   }
 
   /**
-   * Get the underlying LedgerMind client (for testing).
+   * Get the underlying memory store client (for testing).
    */
-  getLedgerMind(): LedgerMindClient {
-    return this.ledgerMind;
+  getMemoryStore(): MemoryStoreClient {
+    return this.memoryStore;
   }
 
   private logAudit(entry: AuditLogEntry): void {

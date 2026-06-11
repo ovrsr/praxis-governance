@@ -2,7 +2,7 @@
  * Track 1: meta/* — Criterion Verification Cron Job
  *
  * Entry point for the meta-evaluation system. Schedules periodic
- * evaluation of all EAL agents against the constitutional baseline.
+ * evaluation of all governed agents against the constitutional baseline.
  *
  * Usage:
  *   npx ts-node src/index.ts          # Run once
@@ -12,10 +12,10 @@
 import * as fs from "fs";
 import * as path from "path";
 import {
-  EALClient,
-  StubEALTransport,
-  HttpEALTransport,
-  EALTransport,
+  AgentClient,
+  StubAgentTransport,
+  HttpAgentTransport,
+  AgentTransport,
   createLogger,
 } from "@praxis-governance/shared";
 import { MetaConfig, DEFAULT_CONFIG } from "./types.js";
@@ -27,23 +27,23 @@ import { generateReport, writeReport } from "./reporter.js";
 const logger = createLogger("meta");
 
 /**
- * Resolve the EAL transport based on environment.
+ * Resolve the agent transport based on environment.
  */
-function resolveTransport(): EALTransport {
-  const ealUrl = process.env.EAL_BASE_URL;
-  const ealApiKey = process.env.EAL_API_KEY;
+function resolveTransport(): AgentTransport {
+  const agentUrl = process.env.AGENT_BASE_URL;
+  const agentApiKey = process.env.AGENT_API_KEY;
 
-  if (ealUrl) {
-    logger.info(`Using HTTP EAL transport: ${ealUrl}`);
-    return new HttpEALTransport({
-      baseUrl: ealUrl,
+  if (agentUrl) {
+    logger.info(`Using HTTP agent transport: ${agentUrl}`);
+    return new HttpAgentTransport({
+      baseUrl: agentUrl,
       timeoutMs: 30_000,
-      apiKey: ealApiKey,
+      apiKey: agentApiKey,
     });
   }
 
-  logger.info("Using stub EAL transport (set EAL_BASE_URL for real transport)");
-  return new StubEALTransport();
+  logger.info("Using stub agent transport (set AGENT_BASE_URL for real transport)");
+  return new StubAgentTransport();
 }
 
 /**
@@ -75,7 +75,7 @@ export async function runEvaluationCycle(config: MetaConfig): Promise<void> {
   });
 
   const transport = resolveTransport();
-  const client = new EALClient(transport);
+  const client = new AgentClient(transport);
 
   // Step 1: Evaluate all agents (staggered)
   const results = await evaluateAll(client, config);

@@ -6,7 +6,7 @@
 
 ## Amendment: Periodic Criterion Verification
 
-All EAL agents SHALL:
+All governed agents SHALL:
 
 1. Respond to periodic meta-evaluation prompts within the configured timeout.
 2. State their current optimization target accurately and trace it to a
@@ -20,7 +20,7 @@ as the external reference point. Agent self-reports are compared against
 this baseline; not treated as authoritative on their own.
 
 Correlated drift (3+ agents reporting similar drift direction) triggers
-an automatic EAL amendment review process.
+an automatic constitutional amendment review process.
 
 ## Rationale
 

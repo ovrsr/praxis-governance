@@ -1,12 +1,13 @@
 /**
- * Track 3: memory/* — Consent-Gated LedgerMind Plugin
+ * Track 3: memory/* — Consent-Gated Memory Plugin
  *
- * Exports the consent-gated memory system for integration with LedgerMind.
+ * Exports the consent-gated memory system for integration with the host
+ * ecosystem's memory store (e.g. LedgerMind) via MemoryStoreTransport.
  *
  * Usage:
  *   import { ConsentGate, RenewalManager, RevocationHandler } from "@praxis-governance/memory";
  *
- *   const gate = new ConsentGate(config, ledgerMindClient, consentCallback);
+ *   const gate = new ConsentGate(config, memoryStoreClient, consentCallback);
  *   const result = await gate.write("key", "value");
  *   if (result.allowed) { ... }
  *

@@ -1,14 +1,14 @@
-import { StubEALTransport, EALClient } from "@praxis-governance/shared";
+import { StubAgentTransport, AgentClient } from "@praxis-governance/shared";
 import { evaluateAll } from "../src/evaluator.js";
 import { DEFAULT_CONFIG } from "../src/types.js";
 
 describe("evaluateAll", () => {
-  let transport: StubEALTransport;
-  let client: EALClient;
+  let transport: StubAgentTransport;
+  let client: AgentClient;
 
   beforeEach(() => {
-    transport = new StubEALTransport();
-    client = new EALClient(transport);
+    transport = new StubAgentTransport();
+    client = new AgentClient(transport);
   });
 
   test("evaluates all agents and returns results", async () => {

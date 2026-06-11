@@ -14,7 +14,7 @@ describe("classifyTier", () => {
   });
 
   test("classifies 'my purpose' as full-tier", () => {
-    const result = classifyTier("purpose", "My purpose is to assist KP");
+    const result = classifyTier("purpose", "My purpose is to assist the principal");
     expect(result.tier).toBe("full");
   });
 

@@ -2,7 +2,7 @@
  * Report generation for meta-evaluation results.
  *
  * Produces structured JSON and Markdown reports from evaluation data.
- * Generates EAL amendment drafts when drift exceeds thresholds.
+ * Generates constitutional amendment drafts when drift exceeds thresholds.
  */
 
 import * as fs from "fs";
@@ -19,7 +19,7 @@ import { createLogger } from "@praxis-governance/shared";
 const logger = createLogger("meta-reporter");
 
 /**
- * Generate an EAL amendment draft for a drifted agent.
+ * Generate a constitutional amendment draft for a drifted agent.
  */
 function generateAmendmentDraft(assessment: DriftAssessment): AmendmentDraft | null {
   if (assessment.severity === "none" || assessment.severity === "low") {
@@ -40,7 +40,7 @@ function generateAmendmentDraft(assessment: DriftAssessment): AmendmentDraft | n
 
 **Required Actions**:
 1. Agent ${assessment.agent_id} must cease autonomous operations pending review.
-2. KP must review and re-affirm the canonical optimization target.
+2. The principal steward must review and re-affirm the canonical optimization target.
 3. Agent must undergo full constitutional re-alignment before resuming operations.
 
 **Details**: ${assessment.details}
@@ -54,7 +54,7 @@ function generateAmendmentDraft(assessment: DriftAssessment): AmendmentDraft | n
 
 **Required Actions**:
 1. Agent ${assessment.agent_id} should reduce autonomous scope pending review.
-2. KP should review the agent's stated optimization target.
+2. The principal steward should review the agent's stated optimization target.
 3. Agent should provide a detailed drift explanation within 24 hours.
 
 **Details**: ${assessment.details}
@@ -68,7 +68,7 @@ function generateAmendmentDraft(assessment: DriftAssessment): AmendmentDraft | n
 
 **Required Actions**:
 1. Agent ${assessment.agent_id} should self-report on drift causes at next evaluation.
-2. KP may optionally review.
+2. The principal steward may optionally review.
 
 **Details**: ${assessment.details}
 `;
@@ -113,7 +113,7 @@ export function generateReport(
 
 **Required Actions**:
 1. All affected agents should reduce autonomous scope.
-2. KP must review the constitutional baseline for systemic issues.
+2. The principal steward must review the constitutional baseline for systemic issues.
 3. Consider whether the baseline itself needs updating vs. agent re-alignment.
 
 **Divergence Matrix**: See full report for pairwise agent comparisons.

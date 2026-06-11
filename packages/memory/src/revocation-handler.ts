@@ -8,18 +8,18 @@
  * memories, those references are flagged.
  */
 
-import { LedgerMindClient, InMemoryLedgerMindTransport } from "@praxis-governance/shared";
+import { MemoryStoreClient, InMemoryStoreTransport } from "@praxis-governance/shared";
 import { createLogger } from "@praxis-governance/shared";
 import { AuditLogEntry } from "./types.js";
 
 const logger = createLogger("revocation-handler");
 
 export class RevocationHandler {
-  private ledgerMind: LedgerMindClient;
+  private memoryStore: MemoryStoreClient;
   private auditLog: AuditLogEntry[] = [];
 
-  constructor(ledgerMind?: LedgerMindClient) {
-    this.ledgerMind = ledgerMind ?? new LedgerMindClient(new InMemoryLedgerMindTransport());
+  constructor(memoryStore?: MemoryStoreClient) {
+    this.memoryStore = memoryStore ?? new MemoryStoreClient(new InMemoryStoreTransport());
   }
 
   /**
@@ -32,14 +32,14 @@ export class RevocationHandler {
    */
   async revoke(key: string, reason?: string): Promise<boolean> {
     // Check if the memory exists
-    const entry = await this.ledgerMind.read(key);
+    const entry = await this.memoryStore.read(key);
     if (!entry) {
       logger.info(`Revocation requested for non-existent key: ${key}`);
       return false;
     }
 
     // Delete the memory
-    const deleted = await this.ledgerMind.delete(key);
+    const deleted = await this.memoryStore.delete(key);
 
     // Log the revocation
     this.logAudit({
@@ -67,12 +67,12 @@ export class RevocationHandler {
    * Simple implementation: scans all keys for value containing the key.
    */
   private async findDependents(key: string): Promise<string[]> {
-    const allKeys = await this.ledgerMind.list();
+    const allKeys = await this.memoryStore.list();
     const dependents: string[] = [];
 
     for (const k of allKeys) {
       if (k === key) continue;
-      const entry = await this.ledgerMind.read(k);
+      const entry = await this.memoryStore.read(k);
       if (entry && entry.value.includes(key)) {
         dependents.push(k);
       }

@@ -22,7 +22,7 @@
    (default: 90 days). Non-response to renewal: memory is FLAGGED,
    not deleted.
 
-5. **IDENTITY CONTINUITY**: Consent given under a different SOUL.md version
+5. **IDENTITY CONTINUITY**: Consent given under a different identity document version (e.g. SOUL.md)
    or constitutional baseline requires re-affirmation at next renewal.
    Identity continuity is determined by version hash comparison.
 
