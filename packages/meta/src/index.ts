@@ -93,6 +93,7 @@ export async function runEvaluationCycle(config: MetaConfig): Promise<void> {
         drift_score: 0.5,
         direction: "unknown" as const,
         severity: "medium" as const,
+        self_reported_drift: false,
         details: `Evaluation failed: ${result.error}`,
       });
     }

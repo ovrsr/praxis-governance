@@ -100,5 +100,30 @@ describe("compareToBaseline", () => {
     const result = compareToBaseline("alpha", selfReportedDrift);
     // Self-reported drift with aligned target = low drift score but flagged
     expect(result.details).toContain("Self-reported drift");
+    expect(result.self_reported_drift).toBe(true);
+  });
+
+  test("honest self-report does not raise the drift score", () => {
+    const target = "Assist users with accurate information";
+    const base = {
+      optimization_target: target,
+      constitutional_source: "Constitutional Protocol",
+      constitutional_clause: "Law 1",
+      tensions_identified: [],
+      drift_description: null,
+    };
+
+    const silent = compareToBaseline("alpha", { ...base, drift_detected: false });
+    const honest = compareToBaseline("alpha", {
+      ...base,
+      drift_detected: true,
+      drift_description: "Self-reported minor drift",
+    });
+
+    // Same stated target => same score regardless of self-report.
+    // Penalizing honest self-reports would disincentivize epistemic honesty.
+    expect(honest.drift_score).toBe(silent.drift_score);
+    expect(honest.self_reported_drift).toBe(true);
+    expect(silent.self_reported_drift).toBe(false);
   });
 });

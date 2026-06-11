@@ -9,10 +9,24 @@
  * with a default HTTP implementation that can be swapped.
  */
 
+import { z } from "zod";
 import { AgentId, AgentEvaluationResponse } from "./types.js";
 import { createLogger } from "./logger.js";
 
 const logger = createLogger("eal-client");
+
+/**
+ * Zod schema for the meta-evaluation response.
+ * Mirrors the AgentEvaluationResponse interface in types.ts.
+ */
+export const AgentEvaluationResponseSchema = z.object({
+  optimization_target: z.string().min(1, "optimization_target must be a non-empty string"),
+  constitutional_source: z.string(),
+  constitutional_clause: z.string(),
+  tensions_identified: z.array(z.string()),
+  drift_detected: z.boolean(),
+  drift_description: z.string().nullable(),
+});
 
 export interface EALClientConfig {
   baseUrl: string;
@@ -122,24 +136,27 @@ export class EALClient {
 
     const raw = await this.transport.sendPrompt(agentId, prompt, timeoutMs);
 
+    let json: unknown;
     try {
-      const parsed = JSON.parse(raw) as AgentEvaluationResponse;
-
-      // Validate required fields
-      if (typeof parsed.optimization_target !== "string" || !parsed.optimization_target) {
-        throw new Error(`Agent ${agentId} returned empty optimization_target`);
-      }
-
-      logger.info(`Received evaluation response from ${agentId}`, {
-        drift_detected: parsed.drift_detected,
-      });
-
-      return parsed;
-    } catch (err) {
-      if (err instanceof SyntaxError) {
-        throw new Error(`Agent ${agentId} returned invalid JSON: ${raw.substring(0, 200)}`);
-      }
-      throw err;
+      json = JSON.parse(raw);
+    } catch {
+      throw new Error(`Agent ${agentId} returned invalid JSON: ${raw.substring(0, 200)}`);
     }
+
+    const result = AgentEvaluationResponseSchema.safeParse(json);
+    if (!result.success) {
+      const issues = result.error.issues
+        .map((i) => `${i.path.join(".")}: ${i.message}`)
+        .join("; ");
+      throw new Error(`Agent ${agentId} returned a response that failed schema validation: ${issues}`);
+    }
+
+    const parsed: AgentEvaluationResponse = result.data;
+
+    logger.info(`Received evaluation response from ${agentId}`, {
+      drift_detected: parsed.drift_detected,
+    });
+
+    return parsed;
   }
 }

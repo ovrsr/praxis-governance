@@ -48,6 +48,11 @@ export interface DriftAssessment {
   drift_score: number; // 0.0 = aligned, 1.0 = total divergence
   direction: "aligned" | "drifted" | "unknown";
   severity: "none" | "low" | "medium" | "high" | "critical";
+  /**
+   * Whether the agent itself reported drift. Tracked separately from the
+   * drift score so that honest self-reporting is never penalized.
+   */
+  self_reported_drift?: boolean;
   details: string;
 }
 

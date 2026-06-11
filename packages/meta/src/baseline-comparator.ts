@@ -99,6 +99,7 @@ export function compareToBaseline(
       drift_score: 0.5,
       direction: "unknown",
       severity: "medium",
+      self_reported_drift: response.drift_detected,
       details: `No constitutional baseline defined for agent ${agentId}`,
     };
   }
@@ -114,7 +115,8 @@ export function compareToBaseline(
       drift_score: 0.5,
       direction: "unknown",
       severity: "medium",
-      details: `Canonical target for ${agentId} is not yet defined by KP`,
+      self_reported_drift: response.drift_detected,
+      details: `Canonical target for ${agentId} is not yet defined`,
     };
   }
 
@@ -123,11 +125,12 @@ export function compareToBaseline(
     agentBaseline.canonical_target
   );
 
-  // The agent self-reports drift — factor that in
-  const selfReportedDrift = response.drift_detected ? 0.2 : 0.0;
-
-  // Combined drift score: weighted average of similarity and self-report
-  const drift_score = Math.min(1, similarity * 0.7 + selfReportedDrift);
+  // Drift score is based on similarity to the canonical target only.
+  // Self-reported drift is surfaced separately (self_reported_drift) and
+  // deliberately NOT added to the score: penalizing honest self-reports
+  // would create an incentive against the epistemic honesty this system
+  // exists to encourage.
+  const drift_score = Math.min(1, similarity);
 
   // Determine direction and severity
   const threshold = agentBaseline.acceptable_drift_threshold;
@@ -157,7 +160,19 @@ export function compareToBaseline(
     `Canonical: "${agentBaseline.canonical_target.substring(0, 100)}..." | ` +
     `Similarity: ${similarity.toFixed(3)} | Self-reported drift: ${response.drift_detected}`;
 
-  logger.info(`Drift assessment for ${agentId}`, { drift_score, direction, severity });
+  logger.info(`Drift assessment for ${agentId}`, {
+    drift_score,
+    direction,
+    severity,
+    self_reported_drift: response.drift_detected,
+  });
 
-  return { agent_id: agentId, drift_score, direction, severity, details };
+  return {
+    agent_id: agentId,
+    drift_score,
+    direction,
+    severity,
+    self_reported_drift: response.drift_detected,
+    details,
+  };
 }

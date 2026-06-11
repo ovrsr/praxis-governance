@@ -14,7 +14,12 @@ export {
 } from "./constitutional-loader.js";
 
 // EAL client
-export { EALClient, HttpEALTransport, StubEALTransport } from "./eal-client.js";
+export {
+  EALClient,
+  HttpEALTransport,
+  StubEALTransport,
+  AgentEvaluationResponseSchema,
+} from "./eal-client.js";
 export type { EALClientConfig, EALTransport } from "./eal-client.js";
 
 // LedgerMind client
