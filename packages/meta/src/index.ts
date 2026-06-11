@@ -11,6 +11,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
+import { pathToFileURL } from "url";
 import {
   AgentClient,
   StubAgentTransport,
@@ -158,8 +159,9 @@ async function main(): Promise<void> {
   }
 }
 
-// Run if executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Run if executed directly. pathToFileURL handles Windows paths, where a
+// naive `file://${argv[1]}` comparison never matches (backslashes, drive letter).
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((err) => {
     logger.error("Fatal error", { error: err.message });
     process.exit(1);
