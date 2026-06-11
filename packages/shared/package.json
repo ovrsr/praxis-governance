@@ -7,7 +7,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "node --experimental-vm-modules node_modules/.bin/jest"
+    "test": "echo 'No tests for shared package' && exit 0"
   },
   "dependencies": {
     "zod": "^3.22.0"

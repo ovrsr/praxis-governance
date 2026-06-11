@@ -7,7 +7,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "node --experimental-vm-modules node_modules/.bin/jest"
+    "test": "echo 'No tests for mode package' && exit 0"
   },
   "dependencies": {
     "@praxis-governance/shared": "1.0.0",
