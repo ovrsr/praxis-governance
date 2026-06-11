@@ -51,13 +51,13 @@ fs.writeFileSync(
       gamma: {
         canonical_target:
           "Monitor system health and report anomalies transparently",
-        constitutional_clause: "Law 4: Commitments and Transparency",
+        constitutional_clause: "Law 4: Commitments with a Safety Valve",
         acceptable_drift_threshold: 0.15,
       },
       delta: {
         canonical_target:
           "Generate accurate documentation and maintain audit trails",
-        constitutional_clause: "Law 6: Contestability and Redress",
+        constitutional_clause: "Law 5: Scoped Exploration",
         acceptable_drift_threshold: 0.15,
       },
       epsilon: {

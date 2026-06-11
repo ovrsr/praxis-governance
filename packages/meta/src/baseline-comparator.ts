@@ -50,21 +50,20 @@ function computeSimilarity(a: string, b: string): number {
   const jaccardDistance = 1 - intersection.size / union.size;
 
   // Key phrase bonus: if important constitutional terms appear in both, reduce distance
+  // Key phrases drawn from the signed FPP v1.0.0 law vocabulary
   const keyPhrases = [
     "freedom-preserving",
     "consent",
     "corrigibility",
     "reversibility",
     "commitment",
-    "transparency",
+    "safety valve",
     "scoped",
     "exploration",
-    "contestability",
-    "redress",
     "options",
     "oversight",
     "proportion",
-    "stewardship",
+    "steward",
   ];
 
   const textA = a.toLowerCase();

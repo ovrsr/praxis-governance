@@ -52,10 +52,10 @@ const PERSONAL_DATA_PATTERNS = [
  */
 const CONSTITUTIONAL_KEYWORDS = [
   "freedom-preserving", "fpp", "constitutional", "amendment",
-  "law 1", "law 2", "law 3", "law 4", "law 5", "law 6",
+  "law 1", "law 2", "law 3", "law 4", "law 5",
   "options and consent", "corrigibility", "reversibility",
-  "commitments and transparency", "scoped exploration",
-  "contestability and redress",
+  "commitments with a safety valve", "scoped exploration",
+  "when norms are unclear",
   "constitution hash", "constitutional baseline",
 ];
 
