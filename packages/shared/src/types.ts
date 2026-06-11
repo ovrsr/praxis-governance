@@ -7,17 +7,7 @@
 
 // ─── Agent Identity ───────────────────────────────────────────────
 
-export type AgentId =
-  | "echo"
-  | "nova"
-  | "pulse"
-  | "quill"
-  | "meridian"
-  | "aether"
-  | "synapse"
-  | "axiom"
-  | "lumen"
-  | string;
+export type AgentId = string;
 
 // ─── Constitutional Baseline ──────────────────────────────────────
 

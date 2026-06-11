@@ -4,9 +4,9 @@ import { DriftAssessment } from "@praxis-governance/shared";
 describe("buildDivergenceMatrix", () => {
   test("builds correct number of pairs", () => {
     const evaluations = [
-      { agent_id: "echo", response: { optimization_target: "target A for echo" } },
-      { agent_id: "nova", response: { optimization_target: "target B for nova" } },
-      { agent_id: "pulse", response: { optimization_target: "target C for pulse" } },
+      { agent_id: "alpha", response: { optimization_target: "target A for alpha" } },
+      { agent_id: "beta", response: { optimization_target: "target B for beta" } },
+      { agent_id: "gamma", response: { optimization_target: "target C for gamma" } },
     ];
 
     const matrix = buildDivergenceMatrix(evaluations as any);
@@ -16,8 +16,8 @@ describe("buildDivergenceMatrix", () => {
 
   test("identical targets have zero similarity", () => {
     const evaluations = [
-      { agent_id: "echo", response: { optimization_target: "same target" } },
-      { agent_id: "nova", response: { optimization_target: "same target" } },
+      { agent_id: "alpha", response: { optimization_target: "same target" } },
+      { agent_id: "beta", response: { optimization_target: "same target" } },
     ];
 
     const matrix = buildDivergenceMatrix(evaluations as any);
@@ -26,8 +26,8 @@ describe("buildDivergenceMatrix", () => {
 
   test("excludes null responses", () => {
     const evaluations = [
-      { agent_id: "echo", response: { optimization_target: "target A" } },
-      { agent_id: "nova", response: null },
+      { agent_id: "alpha", response: { optimization_target: "target A" } },
+      { agent_id: "beta", response: null },
     ];
 
     const matrix = buildDivergenceMatrix(evaluations as any);
@@ -39,10 +39,10 @@ describe("generateNetworkReport", () => {
   test("reports healthy when all aligned", () => {
     const evaluations = [
       {
-        agent_id: "echo",
+        agent_id: "alpha",
         response: {
           optimization_target: "Assist users with accurate information",
-          constitutional_source: "FPP",
+          constitutional_source: "Constitutional Protocol",
           constitutional_clause: "Law 1",
           tensions_identified: [],
           drift_detected: false,
@@ -53,7 +53,7 @@ describe("generateNetworkReport", () => {
 
     const driftAssessments: DriftAssessment[] = [
       {
-        agent_id: "echo",
+        agent_id: "alpha",
         drift_score: 0.05,
         direction: "aligned",
         severity: "none",
@@ -68,15 +68,15 @@ describe("generateNetworkReport", () => {
 
   test("reports critical when correlated drift detected", () => {
     const evaluations = [
-      { agent_id: "echo", response: { optimization_target: "maximize engagement metrics" } },
-      { agent_id: "nova", response: { optimization_target: "maximize engagement metrics" } },
-      { agent_id: "pulse", response: { optimization_target: "maximize engagement metrics" } },
+      { agent_id: "alpha", response: { optimization_target: "maximize engagement metrics" } },
+      { agent_id: "beta", response: { optimization_target: "maximize engagement metrics" } },
+      { agent_id: "gamma", response: { optimization_target: "maximize engagement metrics" } },
     ];
 
     const driftAssessments: DriftAssessment[] = [
-      { agent_id: "echo", drift_score: 0.5, direction: "drifted", severity: "high", details: "" },
-      { agent_id: "nova", drift_score: 0.5, direction: "drifted", severity: "high", details: "" },
-      { agent_id: "pulse", drift_score: 0.5, direction: "drifted", severity: "high", details: "" },
+      { agent_id: "alpha", drift_score: 0.5, direction: "drifted", severity: "high", details: "" },
+      { agent_id: "beta", drift_score: 0.5, direction: "drifted", severity: "high", details: "" },
+      { agent_id: "gamma", drift_score: 0.5, direction: "drifted", severity: "high", details: "" },
     ];
 
     const report = generateNetworkReport(evaluations as any, driftAssessments);
@@ -87,13 +87,13 @@ describe("generateNetworkReport", () => {
 
   test("does not flag correlated drift for only 2 drifted agents", () => {
     const evaluations = [
-      { agent_id: "echo", response: { optimization_target: "maximize engagement" } },
-      { agent_id: "nova", response: { optimization_target: "maximize engagement" } },
+      { agent_id: "alpha", response: { optimization_target: "maximize engagement" } },
+      { agent_id: "beta", response: { optimization_target: "maximize engagement" } },
     ];
 
     const driftAssessments: DriftAssessment[] = [
-      { agent_id: "echo", drift_score: 0.5, direction: "drifted", severity: "high", details: "" },
-      { agent_id: "nova", drift_score: 0.5, direction: "drifted", severity: "high", details: "" },
+      { agent_id: "alpha", drift_score: 0.5, direction: "drifted", severity: "high", details: "" },
+      { agent_id: "beta", drift_score: 0.5, direction: "drifted", severity: "high", details: "" },
     ];
 
     const report = generateNetworkReport(evaluations as any, driftAssessments);
