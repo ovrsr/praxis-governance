@@ -46,7 +46,7 @@ export class RevocationHandler {
       timestamp: new Date().toISOString(),
       action: "revoke",
       memory_key: key,
-      tier: "unknown", // Could be either tier
+      tier: "unknown",
       details: reason ?? "Revoked by agent request",
     });
 

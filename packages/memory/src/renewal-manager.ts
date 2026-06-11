@@ -106,6 +106,7 @@ export class RenewalManager {
       if (!this.renewalCallback) {
         logger.warn(`No renewal callback for ${key}, timing out`);
         renewalsTimedOut++;
+        flaggedForReview++;
         this.logAudit({
           timestamp: new Date().toISOString(),
           action: "renewal_timeout",
@@ -165,7 +166,7 @@ export class RenewalManager {
       flagged_for_review: flaggedForReview,
     };
 
-    logger.info("Renewal cycle complete", report);
+    logger.info("Renewal cycle complete", report as unknown as Record<string, unknown>);
     return report;
   }
 
@@ -175,7 +176,8 @@ export class RenewalManager {
   private isFullTier(key: string, value: string, metadata: ConsentMetadata): boolean {
     // Use stored tier if available
     if (metadata.tier_reason && metadata.tier_reason !== "grandfathered") {
-      return metadata.tier_reason.includes("full") || metadata.tier_reason.includes("identity") || metadata.tier_reason.includes("commitment") || metadata.tier_reason.includes("personal data") || metadata.tier_reason.includes("Constitutional");
+      const reason = metadata.tier_reason.toLowerCase();
+      return reason.includes("full") || reason.includes("identity") || reason.includes("commitment") || reason.includes("personal data") || reason.includes("constitutional");
     }
     return false;
   }

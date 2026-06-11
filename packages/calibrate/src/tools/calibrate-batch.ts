@@ -63,35 +63,24 @@ function detectSystematicBias(
   return null;
 }
 
+export const inputSchema = {
+  assertions: z.array(
+    z.object({
+      claim_text: z.string().min(1).max(10000).describe("The assertion to calibrate."),
+      domain: z.string().min(1).default("general").describe("Domain hint."),
+      confidence_declared: z.number().min(0).max(1).describe("Declared confidence (0.0-1.0)."),
+    })
+  ).min(1).max(100).describe("Array of assertions to calibrate. Max 100 items."),
+  source_agent: z.string().min(1).describe("Which agent is making these assertions."),
+};
+
 export const toolDefinition = {
   name: "praxis_calibrate_batch",
   description:
     "Calibrate a batch of assertions for audit trails. " +
     "Returns individual results plus aggregate calibration score and systematic bias detection. " +
     "Use this for periodic calibration audits or before publishing multiple claims.",
-  inputSchema: {
-    type: "object",
-    properties: {
-      assertions: {
-        type: "array",
-        items: {
-          type: "object",
-          properties: {
-            claim_text: { type: "string", description: "The assertion to calibrate." },
-            domain: { type: "string", description: "Domain hint." },
-            confidence_declared: { type: "number", description: "Declared confidence (0.0-1.0)." },
-          },
-          required: ["claim_text", "confidence_declared"],
-        },
-        description: "Array of assertions to calibrate. Max 100 items.",
-      },
-      source_agent: {
-        type: "string",
-        description: "Which agent is making these assertions.",
-      },
-    },
-    required: ["assertions", "source_agent"],
-  },
+  inputSchema,
   annotations: {
     readOnlyHint: true,
     destructiveHint: false,

@@ -33,7 +33,7 @@
 
 import { createLogger } from "@praxis-governance/shared";
 import type { CalibrationResult } from "@praxis-governance/shared";
-import type {
+import {
   CalibrationConfig,
   DEFAULT_CALIBRATION_CONFIG,
 } from "../types.js";

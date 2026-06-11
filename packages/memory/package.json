@@ -2,11 +2,12 @@
   "name": "@praxis-governance/memory",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "node --experimental-vm-modules node_modules/.bin/jest"
+    "test": "node --experimental-vm-modules ../../node_modules/.bin/jest --config jest.config.cjs"
   },
   "dependencies": {
     "@praxis-governance/shared": "1.0.0",

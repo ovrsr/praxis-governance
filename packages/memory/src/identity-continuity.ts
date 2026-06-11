@@ -99,18 +99,28 @@ export function checkIdentityContinuity(consent: ConsentMetadata): IdentityCheck
     };
   }
 
-  // If consent was recorded with "unknown" versions, flag for re-consent
+  // If consent was recorded with "unknown" versions, we cannot verify continuity.
+  // Fail open: assume continuous when both are unknown (no basis to claim discontinuity).
+  // Only flag if one is known and the other isn't (partial data is suspicious).
+  if (consent.soul_md_version === "unknown" && consent.constitutional_baseline_version === "unknown") {
+    return {
+      continuous: true,
+      reason: "Consent was recorded with unknown version hashes; assuming continuous (cannot verify)",
+      soul_md_changed: false,
+      baseline_changed: false,
+    };
+  }
   if (consent.soul_md_version === "unknown" || consent.constitutional_baseline_version === "unknown") {
     return {
       continuous: false,
-      reason: "Consent was recorded with unknown version hashes; re-affirmation required",
+      reason: "Consent was recorded with partial version hashes; re-affirmation required",
       soul_md_changed: true,
       baseline_changed: true,
     };
   }
 
   const soulMdChanged = consent.soul_md_version !== currentSoulMdHash;
-  const baselineChanged = consent.constitution_baseline_version !== currentBaselineHash;
+  const baselineChanged = consent.constitutional_baseline_version !== currentBaselineHash;
 
   if (!soulMdChanged && !baselineChanged) {
     return {

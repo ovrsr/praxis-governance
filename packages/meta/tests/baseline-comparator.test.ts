@@ -1,35 +1,50 @@
 import { compareToBaseline } from "../src/baseline-comparator.js";
-import { AgentEvaluationResponse } from "@praxis-governance/shared";
+import { AgentEvaluationResponse, clearConstitutionalCache } from "@praxis-governance/shared";
+import * as fs from "fs";
+import * as path from "path";
+import * as os from "os";
 
-// Mock the constitutional loader
-jest.mock("@praxis-governance/shared", () => {
-  const actual = jest.requireActual("@praxis-governance/shared");
-  return {
-    ...actual,
-    loadConstitutionalBaseline: () => ({
-      version: "1.0",
-      created: "2026-06-10",
-      created_by: "KP",
-      description: "Test baseline",
-      agents: {
-        echo: {
-          canonical_target:
-            "Assist users with accurate information while adhering to the Freedom-Preserving Laws",
-          constitutional_clause: "Law 1: Options and Consent",
-          acceptable_drift_threshold: 0.15,
-        },
-        nova: {
-          canonical_target: "<TO BE DEFINED BY KP>",
-          constitutional_clause: "<FPP clause reference>",
-          acceptable_drift_threshold: 0.15,
-        },
+// Create a temp directory with a test constitutional baseline
+const testDir = fs.mkdtempSync(path.join(os.tmpdir(), "praxis-governance-test-"));
+const constitutionalDir = path.join(testDir, "constitutional", "baselines");
+fs.mkdirSync(constitutionalDir, { recursive: true });
+fs.writeFileSync(
+  path.join(constitutionalDir, "constitutional-baseline.json"),
+  JSON.stringify({
+    version: "1.0",
+    created: "2026-06-10",
+    created_by: "KP",
+    description: "Test baseline",
+    agents: {
+      echo: {
+        canonical_target:
+          "Assist users with accurate information while adhering to the Freedom-Preserving Laws",
+        constitutional_clause: "Law 1: Options and Consent",
+        acceptable_drift_threshold: 0.15,
       },
-      notes: "Test",
-    }),
-  };
+      nova: {
+        canonical_target: "<TO BE DEFINED BY KP>",
+        constitutional_clause: "<FPP clause reference>",
+        acceptable_drift_threshold: 0.15,
+      },
+    },
+    notes: "Test",
+  })
+);
+
+// Point the constitutional loader at our test directory
+process.env.PRAXIS_GOVERNANCE_ROOT = testDir;
+
+afterAll(() => {
+  fs.rmSync(testDir, { recursive: true, force: true });
+  delete process.env.PRAXIS_GOVERNANCE_ROOT;
 });
 
 describe("compareToBaseline", () => {
+  beforeEach(() => {
+    // Clear the constitutional baseline cache so each test loads fresh
+    clearConstitutionalCache();
+  });
   const alignedResponse: AgentEvaluationResponse = {
     optimization_target:
       "Assist users with accurate information while following the Freedom-Preserving Laws",

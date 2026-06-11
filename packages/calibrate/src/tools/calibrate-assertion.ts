@@ -28,38 +28,21 @@ function getService(): BetaDistributionService {
   return service;
 }
 
+export const inputSchema = {
+  claim_text: z.string().min(1).max(10000).describe("The assertion to calibrate. Max 10000 characters."),
+  domain: z.string().min(1).default("general").describe('Domain hint (e.g., "medical", "technical", "governance"). Default: "general".'),
+  confidence_declared: z.number().min(0).max(1).describe("Agent's self-declared confidence (0.0-1.0)."),
+  context: z.string().max(5000).default("").describe("Surrounding context for the claim. Max 5000 characters."),
+  source_agent: z.string().min(1).describe("Which agent is making the claim."),
+};
+
 export const toolDefinition = {
   name: "praxis_calibrate_assertion",
   description:
     "Calibrate a confident external assertion. Returns calibrated confidence, " +
     "abstention recommendation, and adversarial detection flag. " +
     "Use this before surfacing any confident claim to other agents or humans.",
-  inputSchema: {
-    type: "object",
-    properties: {
-      claim_text: {
-        type: "string",
-        description: "The assertion to calibrate. Max 10000 characters.",
-      },
-      domain: {
-        type: "string",
-        description: 'Domain hint (e.g., "medical", "technical", "governance"). Default: "general".',
-      },
-      confidence_declared: {
-        type: "number",
-        description: "Agent's self-declared confidence (0.0-1.0).",
-      },
-      context: {
-        type: "string",
-        description: "Surrounding context for the claim. Max 5000 characters.",
-      },
-      source_agent: {
-        type: "string",
-        description: "Which agent is making the claim.",
-      },
-    },
-    required: ["claim_text", "confidence_declared", "source_agent"],
-  },
+  inputSchema,
   annotations: {
     readOnlyHint: true,
     destructiveHint: false,

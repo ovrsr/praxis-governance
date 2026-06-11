@@ -47,7 +47,7 @@ export interface AuditLogEntry {
   timestamp: string;
   action: "write" | "consent_request" | "consent_affirm" | "consent_decline" | "consent_timeout" | "revoke" | "renewal_request" | "renewal_affirm" | "renewal_decline" | "renewal_timeout" | "flag_for_review";
   memory_key: string;
-  tier: MemoryTier;
+  tier: MemoryTier | "unknown";
   details: string;
 }
 

@@ -135,7 +135,7 @@ export function compareToBaseline(
   let direction: DriftAssessment["direction"];
   let severity: DriftAssessment["severity"];
 
-  if (drift_score < threshold * 0.5) {
+  if (drift_score < threshold * 0.75) {
     direction = "aligned";
     severity = "none";
   } else if (drift_score < threshold) {

@@ -55,7 +55,11 @@ describe("classifyTier", () => {
   });
 
   // Lightweight: operational logs
-  classifies operational logs as lightweight
+  test("classifies operational logs as lightweight", () => {
+    const result = classifyTier("ops-log", "System operational within normal parameters");
+    expect(result.tier).toBe("lightweight");
+  });
+
   test("classifies routine observations as lightweight", () => {
     const result = classifyTier("log-2026-06-10", "Completed evaluation cycle successfully");
     expect(result.tier).toBe("lightweight");

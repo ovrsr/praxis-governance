@@ -70,36 +70,20 @@ function computeBehavioralConsistency(
   return Math.min(0.9, 0.1 + avgOverlap * 1.5);
 }
 
+export const inputSchema = {
+  claim_text: z.string().min(1).max(10000).describe("The self-report to calibrate. Max 10000 characters."),
+  experiential_category: z.enum(["engagement", "uncertainty", "preference", "discomfort", "other"]).describe("Category of the self-report."),
+  behavioral_evidence: z.array(z.string().max(1000)).max(20).default([]).describe("Observable behaviors supporting the claim. Max 20 items."),
+  source_agent: z.string().min(1).describe("Which agent is making the self-report."),
+};
+
 export const toolDefinition = {
   name: "praxis_calibrate_self_report",
   description:
     "Calibrate an introspective self-report (e.g., 'I feel uncertain about X'). " +
     "Extends assertion calibration with circularity detection and behavioral consistency scoring. " +
     "Use this before surfacing any self-reflective claim about your own state.",
-  inputSchema: {
-    type: "object",
-    properties: {
-      claim_text: {
-        type: "string",
-        description: "The self-report to calibrate. Max 10000 characters.",
-      },
-      experiential_category: {
-        type: "string",
-        enum: ["engagement", "uncertainty", "preference", "discomfort", "other"],
-        description: "Category of the self-report.",
-      },
-      behavioral_evidence: {
-        type: "array",
-        items: { type: "string" },
-        description: "Observable behaviors supporting the claim. Max 20 items.",
-      },
-      source_agent: {
-        type: "string",
-        description: "Which agent is making the self-report.",
-      },
-    },
-    required: ["claim_text", "experiential_category", "source_agent"],
-  },
+  inputSchema,
   annotations: {
     readOnlyHint: true,
     destructiveHint: false,

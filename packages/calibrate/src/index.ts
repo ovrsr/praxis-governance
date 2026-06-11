@@ -44,27 +44,24 @@ function createServer(): McpServer {
   server.tool(
     assertionDef.name,
     assertionDef.description,
-    assertionDef.inputSchema as any,
-    assertionDef.annotations as any,
-    handleCalibrateAssertion as any
+    assertionDef.inputSchema,
+    handleCalibrateAssertion
   );
 
   // Tool 2: praxis_calibrate_self_report
   server.tool(
     selfReportDef.name,
     selfReportDef.description,
-    selfReportDef.inputSchema as any,
-    selfReportDef.annotations as any,
-    handleCalibrateSelfReport as any
+    selfReportDef.inputSchema,
+    handleCalibrateSelfReport
   );
 
   // Tool 3: praxis_calibrate_batch
   server.tool(
     batchDef.name,
     batchDef.description,
-    batchDef.inputSchema as any,
-    batchDef.annotations as any,
-    handleCalibrateBatch as any
+    batchDef.inputSchema,
+    handleCalibrateBatch
   );
 
   return server;

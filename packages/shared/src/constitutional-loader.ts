@@ -7,8 +7,12 @@
 
 import * as fs from "fs";
 import * as path from "path";
+import { fileURLToPath } from "url";
 import { ConstitutionalBaseline } from "./types.js";
 import { createLogger } from "./logger.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const logger = createLoaderLogger();
 
@@ -21,23 +25,24 @@ export function createLoaderLogger() {
  * Works both from source (relative to this file) and from dist (compiled).
  */
 function resolveConstitutionalRoot(): string {
-  // Try relative to source first
-  const sourceRelative = path.resolve(__dirname, "../../../..", "constitutional");
-  if (fs.existsSync(sourceRelative)) return sourceRelative;
-
-  // Try relative to compiled dist
-  const distRelative = path.resolve(__dirname, "../../../../constitutional");
-  if (fs.existsSync(distRelative)) return distRelative;
-
-  // Fallback: check PRAXIS_GOVERNANCE_ROOT env
+  // Try PRAXIS_GOVERNANCE_ROOT env first (most reliable)
   const envRoot = process.env.PRAXIS_GOVERNANCE_ROOT;
   if (envRoot) {
     const envPath = path.join(envRoot, "constitutional");
     if (fs.existsSync(envPath)) return envPath;
   }
 
+  // Try relative to this file (works for both src and dist)
+  // From packages/shared/src/ or packages/shared/dist/, go up 3 levels to reach repo root
+  const relativeRoot = path.resolve(__dirname, "../../..", "constitutional");
+  if (fs.existsSync(relativeRoot)) return relativeRoot;
+
+  // Try one level higher (in case of different nesting)
+  const altRoot = path.resolve(__dirname, "../../../..", "constitutional");
+  if (fs.existsSync(altRoot)) return altRoot;
+
   logger.warn("Could not resolve constitutional directory, using default");
-  return sourceRelative;
+  return relativeRoot;
 }
 
 let cachedBaseline: ConstitutionalBaseline | null = null;

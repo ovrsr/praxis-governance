@@ -1,5 +1,5 @@
 import { ConsentGate } from "../src/consent-gate.js";
-import { ConsentCallback } from "../src/types.js";
+import type { ConsentCallback } from "../src/consent-gate.js";
 import { InMemoryLedgerMindTransport, LedgerMindClient } from "@praxis-governance/shared";
 import { DEFAULT_MEMORY_CONFIG } from "../src/types.js";
 

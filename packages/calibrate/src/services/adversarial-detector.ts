@@ -38,7 +38,7 @@ const MAX_HISTORY_PER_AGENT = 1000;
 const SUSPICIOUS_CALIBRATION_BAND = 0.05; // Within ±0.05 of 0.5
 const SUSPICIOUS_CALIBRATION_COUNT = 3; // N consecutive near-0.5 claims
 const SUDDEN_IMPROVEMENT_THRESHOLD = 0.3; // Calibration jump > 0.3
-const REPETITIVE_SIMILARITY_THRESHOLD = 0.8; // Jaccard similarity > 0.8
+const REPETITIVE_SIMILARITY_THRESHOLD = 0.7; // Jaccard similarity > 0.7
 
 /**
  * Detects gaming patterns in calibration requests.
