@@ -37,6 +37,12 @@ describe("classifyTier", () => {
     expect(result.reason).toContain("Personal data");
   });
 
+  test("classifies full names as full-tier (case-sensitive pattern)", () => {
+    const result = classifyTier("meeting-note", "Met with Jane Smith regarding the rollout");
+    expect(result.tier).toBe("full");
+    expect(result.reason).toContain("Personal data");
+  });
+
   test("classifies health info as full-tier", () => {
     const result = classifyTier("health", "The patient's diagnosis was confirmed");
     expect(result.tier).toBe("full");

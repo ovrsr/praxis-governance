@@ -123,6 +123,58 @@ describe("ConsentGate", () => {
     expect(revokeEntry?.details).toBe("Test revocation");
   });
 
+  // Consent timeout enforcement
+  test("full-tier write is blocked when consent request times out", async () => {
+    const config = { ...DEFAULT_MEMORY_CONFIG, consentTimeoutMs: 50 };
+    const neverResponds: ConsentCallback = () => new Promise(() => undefined);
+    const gate = new ConsentGate(config, ledgerMind, neverResponds);
+
+    const result = await gate.write("identity", "I am an autonomous agent");
+
+    expect(result.allowed).toBe(false);
+    expect(result.reason).toContain("timed out");
+
+    const stored = await ledgerMind.read("identity");
+    expect(stored).toBeNull();
+
+    const audit = gate.getAuditLog();
+    const timeoutEntry = audit.find((e) => e.action === "consent_timeout");
+    expect(timeoutEntry).toBeDefined();
+  });
+
+  test("async consent callback that affirms within timeout proceeds", async () => {
+    const config = { ...DEFAULT_MEMORY_CONFIG, consentTimeoutMs: 1000 };
+    const slowAffirm: ConsentCallback = async () => {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      return { affirmed: true, timestamp: new Date().toISOString() };
+    };
+    const gate = new ConsentGate(config, ledgerMind, slowAffirm);
+
+    const result = await gate.write("identity", "I am an autonomous agent");
+    expect(result.allowed).toBe(true);
+  });
+
+  // Identity hash stamping
+  test("consent metadata is stamped with real version hashes when identity document is configured", async () => {
+    const os = await import("os");
+    const fs = await import("fs");
+    const path = await import("path");
+
+    const identityDoc = path.join(os.tmpdir(), `identity-doc-${Date.now()}.md`);
+    fs.writeFileSync(identityDoc, "# Test identity document\nVersion 1\n");
+
+    try {
+      const config = { ...DEFAULT_MEMORY_CONFIG, identityDocumentPath: identityDoc };
+      const gate = new ConsentGate(config, ledgerMind, alwaysAffirm);
+
+      const result = await gate.write("identity", "I am an autonomous agent");
+      expect(result.allowed).toBe(true);
+      expect(result.entry?.consent_metadata?.soul_md_version).not.toBe("unknown");
+    } finally {
+      fs.unlinkSync(identityDoc);
+    }
+  });
+
   // Revocation after opt-out window
   test("revoke works after opt-out window expires", async () => {
     const config = { ...DEFAULT_MEMORY_CONFIG, lightweightOptOutHours: 0 }; // Expired immediately

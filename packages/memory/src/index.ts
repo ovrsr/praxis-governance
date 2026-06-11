@@ -16,7 +16,12 @@
 export { ConsentGate, ConsentCallback } from "./consent-gate.js";
 export { RenewalManager, RenewalCallback } from "./renewal-manager.js";
 export { RevocationHandler } from "./revocation-handler.js";
-export { checkIdentityContinuity } from "./identity-continuity.js";
+export {
+  checkIdentityContinuity,
+  getIdentityDocumentHash,
+  getBaselineHash,
+} from "./identity-continuity.js";
+export type { IdentityCheckResult, IdentityContinuityOptions } from "./identity-continuity.js";
 export { classifyTier } from "./tier-classifier.js";
 export type { TierClassification } from "./tier-classifier.js";
 export { DEFAULT_MEMORY_CONFIG } from "./types.js";

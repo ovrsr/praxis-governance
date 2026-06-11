@@ -22,16 +22,18 @@ import {
 } from "@praxis-governance/shared";
 import { createLogger } from "@praxis-governance/shared";
 import { classifyTier } from "./tier-classifier.js";
+import { getIdentityDocumentHash, getBaselineHash } from "./identity-continuity.js";
 import { MemoryConfig, DEFAULT_MEMORY_CONFIG, ConsentGateResult, AuditLogEntry } from "./types.js";
 
 const logger = createLogger("consent-gate");
 
 /**
  * Callback type for requesting consent from the agent.
- * In production, this would send a prompt to the agent and await response.
- * In testing, this is a synchronous callback.
+ * In production, this sends a prompt to the agent and awaits the response;
+ * the gate enforces `config.consentTimeoutMs` around the call.
+ * Synchronous callbacks are accepted for testing convenience.
  */
-export type ConsentCallback = (request: ConsentRequest) => ConsentResponse;
+export type ConsentCallback = (request: ConsentRequest) => ConsentResponse | Promise<ConsentResponse>;
 
 export class ConsentGate {
   private config: MemoryConfig;
@@ -96,8 +98,8 @@ export class ConsentGate {
         retention_duration_days: this.config.defaultRetentionDays,
         deletion_rights: "both",
         tier_reason: tierReason,
-        soul_md_version: "unknown",
-        constitutional_baseline_version: "unknown",
+        soul_md_version: this.currentIdentityHash(),
+        constitutional_baseline_version: this.currentBaselineHash(),
         last_renewed_at: null,
         renewal_due_at: null,
         flagged_for_review: false,
@@ -160,8 +162,27 @@ export class ConsentGate {
       };
     }
 
-    // Request consent
-    const response = this.consentCallback(request);
+    // Request consent, enforcing the configured timeout.
+    // Timeout behavior per AMENDMENT-MEMORY-001 section 2: write is BLOCKED,
+    // not defaulted to consent.
+    let response: ConsentResponse;
+    try {
+      response = await this.awaitConsentWithTimeout(request);
+    } catch (err) {
+      this.logAudit({
+        timestamp: new Date().toISOString(),
+        action: "consent_timeout",
+        memory_key: key,
+        tier: "full",
+        details: `Consent request timed out after ${this.config.consentTimeoutMs}ms`,
+      });
+
+      logger.warn(`Consent request timed out, blocking full-tier write: ${key}`);
+      return {
+        allowed: false,
+        reason: `Consent request timed out after ${this.config.consentTimeoutMs}ms; write blocked`,
+      };
+    }
 
     if (response.affirmed) {
       const entry: MemoryEntry = {
@@ -175,8 +196,8 @@ export class ConsentGate {
           retention_duration_days: this.config.defaultRetentionDays,
           deletion_rights: "both",
           tier_reason: tierReason,
-          soul_md_version: "unknown",
-          constitutional_baseline_version: "unknown",
+          soul_md_version: this.currentIdentityHash(),
+          constitutional_baseline_version: this.currentBaselineHash(),
           last_renewed_at: new Date().toISOString(),
           renewal_due_at: new Date(
             Date.now() + this.config.renewalIntervalDays * 24 * 60 * 60 * 1000
@@ -212,6 +233,39 @@ export class ConsentGate {
   }
 
   /**
+   * Await the consent callback, racing it against the configured timeout.
+   * Rejects on timeout; the caller blocks the write.
+   */
+  private awaitConsentWithTimeout(request: ConsentRequest): Promise<ConsentResponse> {
+    const callback = this.consentCallback!;
+    return new Promise<ConsentResponse>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        reject(new Error(`Consent request timed out after ${this.config.consentTimeoutMs}ms`));
+      }, this.config.consentTimeoutMs);
+
+      Promise.resolve(callback(request))
+        .then((response) => {
+          clearTimeout(timer);
+          resolve(response);
+        })
+        .catch((err) => {
+          clearTimeout(timer);
+          reject(err);
+        });
+    });
+  }
+
+  /** Current identity document hash for stamping consent records. */
+  private currentIdentityHash(): string {
+    return getIdentityDocumentHash(this.config.identityDocumentPath) ?? "unknown";
+  }
+
+  /** Current constitutional baseline hash for stamping consent records. */
+  private currentBaselineHash(): string {
+    return getBaselineHash(this.config.baselinePath) ?? "unknown";
+  }
+
+  /**
    * Revoke a memory (works for both tiers, any time).
    */
   async revoke(key: string, reason?: string): Promise<boolean> {
@@ -223,10 +277,12 @@ export class ConsentGate {
       action: "revoke",
       memory_key: key,
       tier: "unknown",
-      details: reason ?? "Revoked by agent",
+      details: deleted
+        ? (reason ?? "Revoked by agent")
+        : `Revocation requested but key not found${reason ? ` (${reason})` : ""}`,
     });
 
-    logger.info(`Memory revoked: ${key}`, { reason });
+    logger.info(`Memory revoked: ${key}`, { reason, deleted });
     return deleted;
   }
 

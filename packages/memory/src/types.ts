@@ -33,6 +33,14 @@ export interface MemoryConfig {
   lightweightOptOutHours: number;
   /** Output directory for audit logs */
   auditLogDir: string;
+  /**
+   * Path to the agent's identity document (e.g. SOUL.md in OpenClaw).
+   * Used to stamp and verify identity continuity on consent records.
+   * Falls back to the IDENTITY_DOC_PATH environment variable when null.
+   */
+  identityDocumentPath: string | null;
+  /** Explicit path to the constitutional baseline JSON (auto-resolved when null) */
+  baselinePath: string | null;
 }
 
 export const DEFAULT_MEMORY_CONFIG: MemoryConfig = {
@@ -41,6 +49,8 @@ export const DEFAULT_MEMORY_CONFIG: MemoryConfig = {
   renewalIntervalDays: 90,
   lightweightOptOutHours: 24,
   auditLogDir: "./reports/memory",
+  identityDocumentPath: null,
+  baselinePath: null,
 };
 
 export interface AuditLogEntry {

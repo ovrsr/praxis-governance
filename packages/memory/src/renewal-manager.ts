@@ -84,7 +84,10 @@ export class RenewalManager {
       if (!renewalDue) continue;
 
       // Check identity continuity
-      const identityCheck = checkIdentityContinuity(metadata);
+      const identityCheck = checkIdentityContinuity(metadata, {
+        identityDocumentPath: this.config.identityDocumentPath,
+        baselinePath: this.config.baselinePath,
+      });
 
       if (!identityCheck.continuous) {
         // Identity changed — flag for re-consent

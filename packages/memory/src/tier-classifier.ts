@@ -73,7 +73,10 @@ export interface TierClassification {
  * @returns TierClassification with tier, reason, and override flag
  */
 export function classifyTier(key: string, value: string): TierClassification {
-  const text = `${key} ${value}`.toLowerCase();
+  // Keyword checks run on lowercased text; personal-data patterns run on the
+  // original text because the full-name pattern is case-sensitive.
+  const rawText = `${key} ${value}`;
+  const text = rawText.toLowerCase();
 
   // Check constitutional references first (highest priority)
   for (const keyword of CONSTITUTIONAL_KEYWORDS) {
@@ -108,9 +111,9 @@ export function classifyTier(key: string, value: string): TierClassification {
     }
   }
 
-  // Check personal data patterns
+  // Check personal data patterns (against original casing)
   for (const pattern of PERSONAL_DATA_PATTERNS) {
-    if (pattern.test(text)) {
+    if (pattern.test(rawText)) {
       return {
         tier: "full",
         reason: `Personal data pattern detected: ${pattern.source}`,
